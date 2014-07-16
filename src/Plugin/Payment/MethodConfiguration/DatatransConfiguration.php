@@ -89,78 +89,233 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
   }
 
   /**
-   * Sets the final payment status.
+   * Sets the Datatrans Merchant ID.
    *
-   * @param string $status
-   *   The plugin ID of the payment status to set.
+   * @param string $merchant_id
+   *   Datatrans Merchant ID
    *
    * @return \Drupal\payment_datatrans\Plugin\Payment\MethodConfiguration\DatatransConfiguration
    *   The configuration object for the Datatrans payment method plugin.
    */
-  public function setStatus($status) {
-    $this->configuration['status'] = $status;
+  public function setMerchantId($merchant_id) {
+    $this->configuration['merchant_id'] = $merchant_id;
 
     return $this;
   }
 
   /**
-   * Gets the final payment status.
+   * Gets the Datatrans Merchant ID.
    *
    * @return string
-   *   The plugin ID of the payment status to set.
-   */
-  public function getStatus() {
-    return $this->configuration['status'];
-  }
-
-  /**
-   * Sets the Saferpay account id.
-   *
-   * @param string $account_id
-   *   Account id.
-   *
-   * @return \Drupal\payment_datatrans\Plugin\Payment\MethodConfiguration\DatatransConfiguration
-   *   The configuration object for the Datatrans payment method plugin.
-   */
-  public function setMerchantId($account_id) {
-    $this->configuration['account_id'] = $account_id;
-
-    return $this;
-  }
-
-  /**
-   * Gets the Datatrans account id.
-   *
-   * @return string
-   *   The account id.
+   *   Unique Merchant Identifier (assigned by Datatrans)
    */
   public function getMerchantId() {
-    return $this->configuration['account_id'];
+    return $this->configuration['merchant_id'];
   }
 
   /**
-   * Sets the Saferpay password.
+   * Sets the Datatrans Up Start Url.
    *
-   * @param string $password
-   *   The password.
+   * @param string $up_start_url
+   *   DataTrans Up Start Url
    *
    * @return \Drupal\payment_datatrans\Plugin\Payment\MethodConfiguration\DatatransConfiguration
    *   The configuration object for the Datatrans payment method plugin.
    */
-  public function setPassword($password) {
-    $this->configuration['account_id'] = $password;
+  public function setUpStartUrl($up_start_url) {
+    $this->configuration['up_start_url'] = $up_start_url;
 
     return $this;
   }
 
   /**
-   * Gets the Saferpay password.
+   * Gets the Datatrans Up Start URL.
    *
    * @return string
-   *   The password.
+   *   Datatrans service URL
+   *   UTF-8 encoding: https://payment.datatrans.biz/upp/jsp/upStart.jsp
+   *   ISO encoding: https://payment.datatrans.biz/upp/jsp/upStartIso.jsp
+   *
    */
-  public function getPassword() {
-    return $this->configuration['password'];
+  public function getUpStartUrl() {
+    return $this->configuration['up_start_url'];
+  }
+
+  /**
+   * Sets the Datatrans Request Type.
+   *
+   * @param string $req_type
+   *   Datatrans Request Type
+   *
+   * @return \Drupal\payment_datatrans\Plugin\Payment\MethodConfiguration\DatatransConfiguration
+   *   The configuration object for the Datatrans payment method plugin.
+   */
+  public function setReqType($req_type) {
+    $this->configuration['req_type'] = $req_type;
+
+    return $this;
+  }
+
+  /**
+   * Gets the Datatrans Request Type.
+   *
+   * @return string
+   *   The request type specifies whether the transaction has to be im-mediately settled or authorized only.
+   *   There are two request types available:
+   *   “NOA” authorization only
+   *   “CAA” authorization with immediate settlement in case of successful authorization;
+   *   if “reqtype” is not submitted the transaction is processed according to the setting
+   *   in the Web Admin Tool (sec-tion “UPP Administration”).
+   */
+  public function getReqType() {
+    return $this->configuration['req_type'];
+  }
+
+  /**
+   * Sets the Datatrans Security Level
+   *
+   * @param string $security_level
+   *   Datatrans Security Level
+   *
+   * @return \Drupal\payment_datatrans\Plugin\Payment\MethodConfiguration\DatatransConfiguration
+   *   The configuration object for the Datatrans payment method plugin.
+   */
+  public function setSecurityLevel($security_level) {
+    $this->configuration['security']['security_level'] = $security_level;
+
+    return $this;
+  }
+
+  /**
+   * Gets the Datatrans Security Level
+   *
+   * @return string
+   *   The entire data transfer between the merchant's shop application and the Datatrans
+   *   payment application is se-cured by the secure SSL protocol.
+   *
+   *   Security Level 0:
+   *   The data transmission is not secured.
+   *
+   *   Security Level 1:
+   *   The data transmission is secured by sending of the parameter sign which must contain a merchant-specific
+   *   control value (constant). See Merchant Control Constant.
+   *
+   *   Security Level 2:
+   *   The data transmission is secured by sending the parameter sign, which must contain a digital signature generated
+   *   by a standard HMAC-MD5 hash procedure and using a merchant-specific encryption key. The HMAC key is generated
+   *   by the system and can be changed at any time in the merchant administration tool https://payment.datatrans.biz.
+   */
+  public function getSecurityLevel() {
+    return $this->configuration['security']['security_level'];
+  }
+
+  /**
+   * Sets the Datatrans Merchant Control Constant.
+   *
+   * @param string $merchant_control_constant
+   *   Merchant Control Constant
+   *
+   * @return \Drupal\payment_datatrans\Plugin\Payment\MethodConfiguration\DatatransConfiguration
+   *   The configuration object for the Datatrans payment method plugin.
+   */
+  public function setMerchantControlConstant($merchant_control_constant) {
+    $this->configuration['security']['merchant_control_constant'] = $merchant_control_constant;
+
+    return $this;
+  }
+
+  /**
+   * Gets the Datatrans Merchant Control Constant.
+   *
+   * @return string
+   *   This value is generated in the merchant administration tool https://payment.datatrans.biz.
+   *   Note that with every change of this value (which is possible at any time), the interface accepts the current value only
+   */
+  public function getMerchantControlConstant() {
+    return $this->configuration['security']['merchant_control_constant'];
+  }
+
+  /**
+   * Sets the Datatrans Hmac Key.
+   *
+   * @param string $hmac_key
+   *   Hmac Key
+   *
+   * @return \Drupal\payment_datatrans\Plugin\Payment\MethodConfiguration\DatatransConfiguration
+   *   The configuration object for the Datatrans payment method plugin.
+   */
+  public function setHmacKey($hmac_key) {
+    $this->configuration['security']['hmac_key'] = $hmac_key;
+
+    return $this;
+  }
+
+  /**
+   * Gets the Datatrans Hmac Key.
+   *
+   * @return string
+   *   The HMAC key is crerated by the system and can be changed at any time in the merchant administration tool https://payment.datatrans.biz.
+   *   - With every change of the key, the interface accepts signature based on the current key only!
+   *   - The key is delivered in hexadecimal format, and it should also be stored in this format. But before its usage the key must be translated into byte format!
+   *   - “sign2” is only returned in success case
+   */
+  public function getHmacKey() {
+    return $this->configuration['security']['hmac_key'];
+  }
+
+  /**
+   * Sets the Datatrans Use Hmac 2.
+   *
+   * @param string $use_hmac_2
+   *   Hmac 2
+   *
+   * @return \Drupal\payment_datatrans\Plugin\Payment\MethodConfiguration\DatatransConfiguration
+   *   The configuration object for the Datatrans payment method plugin.
+   */
+  public function setUseHmacTwo($use_hmac_2) {
+    $this->configuration['security']['use_hmac_2'] = $use_hmac_2;
+
+    return $this;
+  }
+
+  /**
+   * Gets the Datatrans Use Hmkay 2.
+   *
+   * @return string
+   *   Checkbox to enabled/disable use of hmac key 2
+   */
+  public function getUseHmacTwo() {
+    return $this->configuration['security']['use_hmac_2'];
+  }
+
+  /**
+   * Sets the Datatrans Hmac Key 2.
+   *
+   * @param string $hmac_key_2
+   *   Hmac key 2
+   *
+   * @return \Drupal\payment_datatrans\Plugin\Payment\MethodConfiguration\DatatransConfiguration
+   *   The configuration object for the Datatrans payment method plugin.
+   */
+  public function setHmacKeyTwo($hmac_key_2) {
+    $this->configuration['security']['hmac_key_2'] = $hmac_key_2;
+
+    return $this;
+  }
+
+  /**
+   * Gets the Datatrans Hmac Key 2.
+   *
+   * @return string
+   *  todo: is this documentation right? (same as hmac key 1)
+   *   The HMAC key is crerated by the system and can be changed at any time in the merchant administration tool https://payment.datatrans.biz.
+   *   - With every change of the key, the interface accepts signature based on the current key only!
+   *   - The key is delivered in hexadecimal format, and it should also be stored in this format. But before its usage the key must be translated into byte format!
+   *   - “sign2” is only returned in success case
+   *
+   */
+  public function getHmacKeyTwo() {
+    return $this->configuration['security']['hmac_key_2'];
   }
 
   /**
@@ -173,14 +328,14 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
     $form['merchant_id'] = array(
       '#type' => 'textfield',
       '#title' => t('Merchant-ID'),
-      '#default_value' => $settings['merchant_id'],
+      '#default_value' => $this->getMerchantId(),
       '#required' => TRUE,
     );
 
     $form['up_start_url'] = array(
       '#type' => 'textfield',
       '#title' => t('Start URL'),
-      '#default_value' => $settings['up_start_url'],
+      '#default_value' => $this->getUpStartUrl(),
       '#required' => TRUE,
     );
 
@@ -192,7 +347,7 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
         'CAA' => t('Authorization with immediate settlement'),
         'ignore' => t('According to the setting in the Web Admin Tool'),
       ),
-      '#default_value' => $settings['req_type'],
+      '#default_value' => $this->getReqType(),
     );
 
     $form['security'] = array(
@@ -213,33 +368,33 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
         '1' => t('Level 1. An additional Merchant-IDentification will be send with payment messages'),
         '2' => t('Level 2. Important parameters will be digitally signed (HMAC-MD5) and sent with payment messages'),
       ),
-      '#default_value' => $settings['security']['security_level'],
+      '#default_value' => $this->getSecurityLevel(),
     );
 
     $form['security']['merchant_control_constant'] = array(
       '#type' => 'textfield',
       '#title' => t('Merchant control constant'),
-      '#default_value' => $settings['security']['merchant_control_constant'],
+      '#default_value' => $this->getMerchantControlConstant(),
       '#description' => t('Used for security level 1'),
     );
 
     $form['security']['hmac_key'] = array(
       '#type' => 'textfield',
       '#title' => t('HMAC Key'),
-      '#default_value' => $settings['security']['hmac_key'],
+      '#default_value' => $this->getHmacKey(),
       '#description' => t('Used for security level 2'),
     );
 
     $form['security']['use_hmac_2'] = array(
       '#type' => 'checkbox',
       '#title' => 'Use HMAC 2',
-      '#default_value' => $settings['security']['use_hmac_2'],
+      '#default_value' => $this->getUseHmacTwo(),
     );
 
     $form['security']['hmac_key_2'] = array(
       '#type' => 'textfield',
       '#title' => t('HMAC Key 2'),
-      '#default_value' => $settings['security']['hmac_key_2'],
+      '#default_value' => $this->getHmacKeyTwo(),
       '#description' => t('Used for security level 2'),
     );
 
@@ -251,9 +406,16 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
    */
   public function formElementsValidate(array $element, array &$form_state, array $form) {
     $values = NestedArray::getValue($form_state['values'], $element['#parents']);
-    $this->setStatus($values['status'])
-      ->setAccountId($values['account_id'])
-      ->setPassword($values['password']);
+
+    $this->setMerchantId($values['merchant_id'])
+      ->setUpStartUrl($values['up_start_url'])
+      ->setReqType($values['req_type'])
+      ->setSecurityLevel($values['security'])
+      ->setSecurityLevel($values['security']['security_level'])
+      ->setMerchantControlConstant($values['security']['merchant_control_constant'])
+      ->setHmacKey($values['security']['hmac_key'])
+      ->setUseHmacTwo($values['security']['use_hmac_2'])
+      ->setHmacKeyTwo($values['security']['hmac_key_2']);
   }
 
 }
