@@ -87,7 +87,7 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
    */
   protected function doExecutePayment() {
     $payment = $this->getPayment();
-
+    // @todo: Implement redirect (commerce_datatrans_redirect_form) to and from Datatrans fucntionality (success/error/cancel), hashmac check (commerce_datatrans_redirect_form_validate), .
     $payment->setStatus($this->paymentStatusManager->createInstance('finished'));
     $payment->save();
     $payment->getPaymentType()->resumeContext();

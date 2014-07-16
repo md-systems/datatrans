@@ -177,8 +177,7 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
    * @param string $security_level
    *   Datatrans Security Level
    *
-   * @return \Drupal\payment_datatrans\Plugin\Payment\MethodConfiguration\DatatransConfiguration
-   *   The configuration object for the Datatrans payment method plugin.
+   * @return $this
    */
   public function setSecurityLevel($security_level) {
     $this->configuration['security']['security_level'] = $security_level;
@@ -361,7 +360,7 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
       '#title' => t('Security Settings'),
       '#collapsible' => FALSE,
       '#collapsed' => FALSE,
-      '#description' => t('You should not work with anything else than security level 2 on a productive system. Without the HMAC key there is no way to check whether the data really comes from Datatrans.') . PHP_EOL .t('You can find more details about the security levels in your Datatrans account at UPP ADMINISTRATION -> Security. Or check the technical information in the !link', array('!link' => l('Technical_Implementation_Guide', 'https://pilot.datatrans.biz/showcase/doc/Technical_Implementation_Guide.pdf', array('external' => TRUE)))),
+      '#description' => t('You should not work with anything else than security level 2 on a productive system. Without the HMAC key there is no way to check whether the data really comes from Datatrans.') . PHP_EOL . t('You can find more details about the security levels in your Datatrans account at UPP ADMINISTRATION -> Security. Or check the technical information in the !link', array('!link' => l('Technical_Implementation_Guide', 'https://pilot.datatrans.biz/showcase/doc/Technical_Implementation_Guide.pdf', array('external' => TRUE)))),
     );
 
     $form['security']['security_level'] = array(
@@ -369,7 +368,7 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
       '#title' => t('Security Level'),
       '#options' => array(
         '0' => t('Level 0. No additional security element will be send with payment messages. (not recommended)'),
-        '1' => t('Level 1. An additional Merchant-IDentification will be send with payment messages'),
+        '1' => t('Level 1. An additional Merchant-Identification will be send with payment messages'),
         '2' => t('Level 2. Important parameters will be digitally signed (HMAC-MD5) and sent with payment messages'),
       ),
       '#default_value' => $this->getSecurityLevel(),
