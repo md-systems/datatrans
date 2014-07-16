@@ -1,0 +1,21 @@
+<?php
+/**
+ * @file
+ *
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function datatrans_permission() {
+  return array(
+    'administer datatrans' => array(
+      'title' => t('Administer Datatrans configuration'),
+      'description' => t('Administer Datatrans module, change settings.'),
+    ),
+    'anonymous datatrans' => array(
+      'title' => t('Datatrans redirect'),
+      'description' => t('Use the Datatrans redirect service.'),
+    ),
+  );
+}

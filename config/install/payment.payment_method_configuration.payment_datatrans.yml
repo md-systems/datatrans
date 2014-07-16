@@ -1,0 +1,9 @@
+id: payment_datatrans
+label: 'Datatrans'
+ownerId: 1
+pluginConfiguration:
+  message_text: 'Datatrans'
+  message_text_format: plain_text
+  status: payment_pending
+pluginId: payment_datatrans
+status: false

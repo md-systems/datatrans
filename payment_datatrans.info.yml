@@ -1,0 +1,7 @@
+name: Payment Datatrans
+type: module
+description: Provides functionality to allow Drupal to send requests to Datatrans.
+core: 8.x
+
+dependencies:
+  - payment

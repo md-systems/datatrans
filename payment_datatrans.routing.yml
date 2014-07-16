@@ -1,0 +1,4 @@
+payment_datatrans.redirect:
+  path: '/datatrans'
+  requirements:
+    _permission: 'anonymous datatrans'
