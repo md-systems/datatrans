@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Contains \Drupal\payment_datatrans\Controller\DatatransResponseController
+ * Contains \Drupal\payment_datatrans\Controller\DatatransResponseController.
  */
 
 namespace Drupal\payment_datatrans\Controller;
@@ -13,7 +13,10 @@ use Drupal\payment\Entity\PaymentInterface;
 class DatatransResponseController {
 
   /**
-   * Page callback for processing successfull Datatrans response.
+   * Page callback for processing successful Datatrans response.
+   *
+   * @param \Drupal\payment\Entity\PaymentInterface $payment
+   *   The Payment entity type.
    */
   public function proccessSuccessResponse(PaymentInterface $payment) {
     $payment->setStatus(\Drupal::service('plugin.manager.payment.status')->createInstance('payment_success'));
@@ -23,6 +26,9 @@ class DatatransResponseController {
 
   /**
    * Page callback for processing error Datatrans response.
+   *
+   * @param \Drupal\payment\Entity\PaymentInterface $payment
+   *   The Payment entity type.
    */
   public function proccessErrorResponse(PaymentInterface $payment) {
     $payment->setStatus(\Drupal::service('plugin.manager.payment.status')->createInstance('payment_failed'));
@@ -32,6 +38,9 @@ class DatatransResponseController {
 
   /**
    * Page callback for processing cancellation Datatrans response.
+   *
+   * @param \Drupal\payment\Entity\PaymentInterface $payment
+   *   The Payment entity type.
    */
   public function proccessCancelResponse(PaymentInterface $payment) {
     $payment->setStatus(\Drupal::service('plugin.manager.payment.status')->createInstance('payment_cancelled'));
