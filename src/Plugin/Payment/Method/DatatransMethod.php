@@ -93,44 +93,41 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
 
     $currency = Currency::load($payment->getCurrencyCode());
 
-//    $securityHash = null;
-//
-//    switch ($this->pluginDefinition['security']['security_level']) {
-//      case 1:
-//
-//
-//        $form['sign'] = array(
-//          '#type' => 'hidden',
-//          '#value' => $payment_method['settings']['security']['merchant_control_constant'],
-//        );
-//        break;
-//      case 2:
-//        $form['sign'] = array(
-//          '#type' => 'hidden',
-//          '#value' => hash_hmac('md5', $payment_method['settings']['merchant_id'] . $total[0]['amount'] . $total[0]['currency_code'] . $order->order_id, pack("H*", $payment_method['settings']['security']['hmac_key'])),
-//        );
-//        break;
-//    }
+    $sign = null;
+
+    switch ($this->pluginDefinition['security']['security_level']) {
+      case 1:
+        $sign = $this->pluginDefinition['security']['merchant_control_constant'];
+
+        break;
+
+      case 2:
+        $sign = hash_hmac(
+          'md5',
+          $this->pluginDefinition['merchant_id'] . intval($payment->getamount() * $currency->getSubunits()) . $payment->getCurrencyCode() . $payment->id(),
+          pack("H*", $this->pluginDefinition['security']['hmac_key'])
+        );
+
+        break;
+    }
 
     $paymentArray = array(
       'merchantId' => $this->pluginDefinition['merchant_id'],
       'amount' => intval($payment->getamount() * $currency->getSubunits()),
       'currency' => $payment->getCurrencyCode(),
       'refno' => '16543', //TODO: Append to a unique reference number (order number)
-      //'sign' => '', // TODO: Create a new form item to fill in the sign
-      //'security_level' => $this->pluginDefinition['security']['security_level'],
+      'sign' => $sign,
 
       'successUrl' => url('datatrans/success/'. $payment->id(), array('absolute' => TRUE)),
-      'errorUrl' => url('datatrans/error', array('absolute' => TRUE)),
-      'cancelUrl' => url('datatrans/cancel', array('absolute' => TRUE)),
+      'errorUrl' => url('datatrans/error/'. $payment->id(), array('absolute' => TRUE)),
+      'cancelUrl' => url('datatrans/cancel/'. $payment->id(), array('absolute' => TRUE)),
 
+      'reqtype' => $this->pluginDefinition['req_type'],
+      'security_level' => $this->pluginDefinition['security']['security_level'],
 
-
-      // TODO: Check if the senderUrl should be used for returning to the last page on order cancellation
-      'senderUrl' => "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]",
 
 //      'up_start_url' => $this->pluginDefinition['up_start_url'],
-//      'req_type' => $this->pluginDefinition['req_type'],
+
 //      'security' => array(
 //        'security_level' => $this->pluginDefinition['security']['security_level'],
 //        'merchant_control_constant' => $this->pluginDefinition['security']['merchant_control_constant'],
@@ -144,8 +141,6 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
 
     debug($http_build_query_paymentArray);
     // @todo: Implement redirect (commerce_datatrans_redirect_form) to and from Datatrans functionality (success/error/cancel), hashmac check (commerce_datatrans_redirect_form_validate).
-
-
   }
 
   /**

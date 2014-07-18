@@ -6,14 +6,14 @@ payment_datatrans.response_success:
     _access: 'TRUE'
 
 payment_datatrans.response_error:
-  path: '/datatrans/error'
+  path: '/datatrans/error/{payment}'
   defaults:
     _content: '\Drupal\payment_datatrans\Controller\DatatransResponseController::proccessErrorResponse'
   requirements:
     _access: 'TRUE'
 
 payment_datatrans.response_cancel:
-  path: '/datatrans/cancel'
+  path: '/datatrans/cancel/{payment}'
   defaults:
     _content: '\Drupal\payment_datatrans\Controller\DatatransResponseController::proccessCancelResponse'
   requirements:
