@@ -1,0 +1,34 @@
+- Payment Redirect Key
+- Redirection
+
+
+TODO: How and what to store for a payment?
+// Succesfull transaction $_POST
+array (
+  'security_level' => '2',
+  'testOnly' => 'yes',
+  'amount' => '1000',
+  'pmethod' => 'VIS',
+  'uppCustomerFirstName' => 'asdads',
+  'uppCustomerCity' => 'asdadsasd',
+  'uppCustomerZipCode' => 'CHE',
+  'refno' => '16543',
+  'uppCustomerDetails' => 'yes',
+  'reqtype' => 'NOA',
+  'acqAuthorizationCode' => '162749',
+  'uppCustomerStreet' => 'sdaadsads',
+  'Poop' => 'Pee',
+  'responseMessage' => 'Authorized',
+  'uppTransactionId' => '140718162725427458',
+  'avsResult' => '*',
+  'expy' => '15',
+  'responseCode' => '01',
+  'senderUrl' => 'http://np8.dev/drupal/node/1',
+  'merchantId' => '1000011011',
+  'currency' => 'CHF',
+  'expm' => '12',
+  'uppCustomerLastName' => 'asdads',
+  'authorizationCode' => '749468071',
+  'status' => 'success',
+  'uppMsgType' => 'web',
+)

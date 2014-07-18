@@ -1,4 +1,20 @@
-payment_datatrans.redirect:
-  path: '/datatrans'
+payment_datatrans.response_success:
+  path: '/datatrans/success/{payment}'
+  defaults:
+    _content: '\Drupal\payment_datatrans\Controller\DatatransResponseController::proccessSuccessResponse'
   requirements:
-    _permission: 'anonymous datatrans'
+    _access: 'TRUE'
+
+payment_datatrans.response_error:
+  path: '/datatrans/error'
+  defaults:
+    _content: '\Drupal\payment_datatrans\Controller\DatatransResponseController::proccessErrorResponse'
+  requirements:
+    _access: 'TRUE'
+
+payment_datatrans.response_cancel:
+  path: '/datatrans/cancel'
+  defaults:
+    _content: '\Drupal\payment_datatrans\Controller\DatatransResponseController::proccessCancelResponse'
+  requirements:
+    _access: 'TRUE'

@@ -11,20 +11,23 @@ use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Utility\Token;
+use Drupal\currency\Entity\Currency;
 use Drupal\payment\Plugin\Payment\Method\PaymentMethodBase;
 use Drupal\payment\Plugin\Payment\Status\PaymentStatusManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Drupal\Component\Plugin\ConfigurablePluginInterface;
 
 /**
  * Datatrans payment method.
  *
  * @PaymentMethod(
+ *   deriver = "Drupal\payment_datatrans\Plugin\Payment\Method\DatatransDeriver",
  *   id = "payment_datatrans",
  *   label = @Translation("Datatrans")
  * )
  */
-class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPluginInterface {
+class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPluginInterface, ConfigurablePluginInterface {
 
   /**
    * The payment status manager.
@@ -87,10 +90,62 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
    */
   protected function doExecutePayment() {
     $payment = $this->getPayment();
+
+    $currency = Currency::load($payment->getCurrencyCode());
+
+//    $securityHash = null;
+//
+//    switch ($this->pluginDefinition['security']['security_level']) {
+//      case 1:
+//
+//
+//        $form['sign'] = array(
+//          '#type' => 'hidden',
+//          '#value' => $payment_method['settings']['security']['merchant_control_constant'],
+//        );
+//        break;
+//      case 2:
+//        $form['sign'] = array(
+//          '#type' => 'hidden',
+//          '#value' => hash_hmac('md5', $payment_method['settings']['merchant_id'] . $total[0]['amount'] . $total[0]['currency_code'] . $order->order_id, pack("H*", $payment_method['settings']['security']['hmac_key'])),
+//        );
+//        break;
+//    }
+
+    $paymentArray = array(
+      'merchantId' => $this->pluginDefinition['merchant_id'],
+      'amount' => intval($payment->getamount() * $currency->getSubunits()),
+      'currency' => $payment->getCurrencyCode(),
+      'refno' => '16543', //TODO: Append to a unique reference number (order number)
+      //'sign' => '', // TODO: Create a new form item to fill in the sign
+      //'security_level' => $this->pluginDefinition['security']['security_level'],
+
+      'successUrl' => url('datatrans/success/'. $payment->id(), array('absolute' => TRUE)),
+      'errorUrl' => url('datatrans/error', array('absolute' => TRUE)),
+      'cancelUrl' => url('datatrans/cancel', array('absolute' => TRUE)),
+
+
+
+      // TODO: Check if the senderUrl should be used for returning to the last page on order cancellation
+      'senderUrl' => "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]",
+
+//      'up_start_url' => $this->pluginDefinition['up_start_url'],
+//      'req_type' => $this->pluginDefinition['req_type'],
+//      'security' => array(
+//        'security_level' => $this->pluginDefinition['security']['security_level'],
+//        'merchant_control_constant' => $this->pluginDefinition['security']['merchant_control_constant'],
+//        'hmac_key' => $this->pluginDefinition['security']['hmac_key'],
+//        'hmac_key_2' => $this->pluginDefinition['security']['hmac_key_2'],
+//        'use_hmac_2' => $this->pluginDefinition['security']['use_hmac_2'],
+//      ),
+    );
+
+    $http_build_query_paymentArray = "https://payment.datatrans.biz/upp/jsp/upStart.jsp?" . http_build_query($paymentArray);
+
+    debug($http_build_query_paymentArray);
     // @todo: Implement redirect (commerce_datatrans_redirect_form) to and from Datatrans functionality (success/error/cancel), hashmac check (commerce_datatrans_redirect_form_validate).
-    $payment->setStatus($this->paymentStatusManager->createInstance('finished'));
-    $payment->save();
-    $payment->getPaymentType()->resumeContext();
+
+
   }
 
   /**
