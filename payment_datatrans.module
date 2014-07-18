@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- *
+ * A Payment method plugin for the Payment module.
  */
 
 /**

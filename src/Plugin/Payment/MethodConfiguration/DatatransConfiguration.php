@@ -177,7 +177,8 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
    * @param string $security_level
    *   Datatrans Security Level
    *
-   * @return $this
+   * @return \Drupal\payment_datatrans\Plugin\Payment\MethodConfiguration\DatatransConfiguration
+   *   The configuration object for the Datatrans payment method plugin.
    */
   public function setSecurityLevel($security_level) {
     $this->configuration['security']['security_level'] = $security_level;
@@ -186,7 +187,7 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
   }
 
   /**
-   * Gets the Datatrans Security Level
+   * Gets the Datatrans Security Level.
    *
    * @return string
    *   The entire data transfer between the merchant's shop application and the
@@ -240,10 +241,10 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
   }
 
   /**
-   * Sets the Datatrans Hmac Key.
+   * Sets the Datatrans HMAC Key.
    *
    * @param string $hmac_key
-   *   Hmac Key
+   *   The HMAC Key.
    *
    * @return \Drupal\payment_datatrans\Plugin\Payment\MethodConfiguration\DatatransConfiguration
    *   The configuration object for the Datatrans payment method plugin.
@@ -255,7 +256,7 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
   }
 
   /**
-   * Gets the Datatrans Hmac Key.
+   * Gets the Datatrans HMAC Key.
    *
    * @return string
    *   The HMAC key is crerated by the system and can be changed at any time in
@@ -272,10 +273,10 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
   }
 
   /**
-   * Sets the Datatrans Use Hmac 2.
+   * Sets the Datatrans Use for the HMAC key 2.
    *
    * @param string $use_hmac_2
-   *   Hmac 2
+   *   Checkbox to enabled/disable use of the HMAC key 2.
    *
    * @return \Drupal\payment_datatrans\Plugin\Payment\MethodConfiguration\DatatransConfiguration
    *   The configuration object for the Datatrans payment method plugin.
@@ -287,20 +288,20 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
   }
 
   /**
-   * Gets the Datatrans Use Hmkay 2.
+   * Gets the Datatrans Use for the HMAC key 2.
    *
    * @return string
-   *   Checkbox to enabled/disable use of hmac key 2
+   *   Checkbox to enabled/disable use of the HMAC key 2.
    */
   public function getUseHmacTwo() {
     return $this->configuration['security']['use_hmac_2'];
   }
 
   /**
-   * Sets the Datatrans Hmac Key 2.
+   * Sets the Datatrans HMAC Key 2.
    *
    * @param string $hmac_key_2
-   *   Hmac key 2
+   *   The HMAC key 2.
    *
    * @return \Drupal\payment_datatrans\Plugin\Payment\MethodConfiguration\DatatransConfiguration
    *   The configuration object for the Datatrans payment method plugin.
@@ -311,12 +312,11 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
     return $this;
   }
 
-  // @todo: is this documentation right? (same as hmac key 1).
   /**
-   * Gets the Datatrans Hmac Key 2.
+   * Gets the Datatrans HMAC Key 2.
    *
    * @return string
-   *   The HMAC key is crerated by the system and can be changed at any time in
+   *   The HMAC key is created by the system and can be changed at any time in
    *   the merchant administration tool https://payment.datatrans.biz.
    *   - With every change of the key, the interface accepts signature based on
    *     the current key only!
