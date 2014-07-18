@@ -18,7 +18,7 @@ class DatatransResponseController {
    * @param \Drupal\payment\Entity\PaymentInterface $payment
    *   The Payment entity type.
    */
-  public function proccessSuccessResponse(PaymentInterface $payment, DatatransDeriver $datatransDeriver) {
+  public function processSuccessResponse(PaymentInterface $payment, DatatransDeriver $datatransDeriver) {
     $configuration = $datatransDeriver->getDerivativeDefinitions();
 //    if (!is_array($_POST)) {
 //      drupal_set_message(t('Datatrans communication failure. Invalid data received from datatrans. Please contact the system administrator.'), 'error');
@@ -58,7 +58,7 @@ class DatatransResponseController {
    * @param \Drupal\payment\Entity\PaymentInterface $payment
    *   The Payment entity type.
    */
-  public function proccessErrorResponse(PaymentInterface $payment) {
+  public function processErrorResponse(PaymentInterface $payment) {
     $payment->setStatus(\Drupal::service('plugin.manager.payment.status')->createInstance('payment_failed'));
     $payment->save();
     $payment->getPaymentType()->resumeContext();
@@ -70,7 +70,7 @@ class DatatransResponseController {
    * @param \Drupal\payment\Entity\PaymentInterface $payment
    *   The Payment entity type.
    */
-  public function proccessCancelResponse(PaymentInterface $payment) {
+  public function processCancelResponse(PaymentInterface $payment) {
     $payment->setStatus(\Drupal::service('plugin.manager.payment.status')->createInstance('payment_cancelled'));
     $payment->save();
     $payment->getPaymentType()->resumeContext();
