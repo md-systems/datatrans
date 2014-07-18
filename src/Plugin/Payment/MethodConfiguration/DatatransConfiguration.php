@@ -260,8 +260,11 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
    * @return string
    *   The HMAC key is crerated by the system and can be changed at any time in
    *   the merchant administration tool https://payment.datatrans.biz.
-   *   - With every change of the key, the interface accepts signature based on the current key only!
-   *   - The key is delivered in hexadecimal format, and it should also be stored in this format. But before its usage the key must be translated into byte format!
+   *   - With every change of the key, the interface accepts signature based on
+   *     the current key only!
+   *   - The key is delivered in hexadecimal format, and it should also be
+   *     stored in this format. But before its usage the key must be translated
+   *     into byte format!
    *   - “sign2” is only returned in success case.
    */
   public function getHmacKey() {
@@ -315,8 +318,11 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
    * @return string
    *   The HMAC key is crerated by the system and can be changed at any time in
    *   the merchant administration tool https://payment.datatrans.biz.
-   *   - With every change of the key, the interface accepts signature based on the current key only!
-   *   - The key is delivered in hexadecimal format, and it should also be stored in this format. But before its usage the key must be translated into byte format!
+   *   - With every change of the key, the interface accepts signature based on
+   *     the current key only!
+   *   - The key is delivered in hexadecimal format, and it should also be
+   *     stored in this format. But before its usage the key must be translated
+   *     into byte format!
    *   - “sign2” is only returned in success case.
    */
   public function getHmacKeyTwo() {
@@ -379,6 +385,11 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
       '#title' => t('Merchant control constant'),
       '#default_value' => $this->getMerchantControlConstant(),
       '#description' => t('Used for security level 1'),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="plugin_form[security][security_level]"]' => array('value' => '1'),
+        ),
+      ),
     );
 
     $form['security']['hmac_key'] = array(
@@ -386,12 +397,22 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
       '#title' => t('HMAC Key'),
       '#default_value' => $this->getHmacKey(),
       '#description' => t('Used for security level 2'),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="plugin_form[security][security_level]"]' => array('value' => '2'),
+        ),
+      ),
     );
 
     $form['security']['use_hmac_2'] = array(
       '#type' => 'checkbox',
       '#title' => 'Use HMAC 2',
       '#default_value' => $this->getUseHmacTwo(),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="plugin_form[security][security_level]"]' => array('value' => '2'),
+        ),
+      ),
     );
 
     $form['security']['hmac_key_2'] = array(
@@ -399,6 +420,11 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
       '#title' => t('HMAC Key 2'),
       '#default_value' => $this->getHmacKeyTwo(),
       '#description' => t('Used for security level 2'),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="plugin_form[security][security_level]"]' => array('value' => '2'),
+        ),
+      ),
     );
 
     return $form;
