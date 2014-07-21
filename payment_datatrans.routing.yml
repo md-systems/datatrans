@@ -1,5 +1,6 @@
 payment_datatrans.response_success:
   path: '/datatrans/success/{payment}'
+  deriver: 'Drupal\payment_datatrans\Plugin\Payment\Method\DatatransDeriver'
   defaults:
     _content: '\Drupal\payment_datatrans\Controller\DatatransResponseController::processSuccessResponse'
   requirements:

@@ -113,7 +113,7 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
 
     $paymentArray = array(
       'merchantId' => $this->pluginDefinition['merchant_id'],
-      'amount' => intval($payment->getamount() * $currency->getSubunits()),
+      'amount' => intval($payment->getamount() * $currency->getSubunits()), // TODO: Check if it works
       'currency' => $payment->getCurrencyCode(),
       'refno' => '16543', //TODO: Append to a unique reference number (order number)
       'sign' => $sign,
@@ -122,19 +122,7 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
       'errorUrl' => url('datatrans/error/'. $payment->id(), array('absolute' => TRUE)),
       'cancelUrl' => url('datatrans/cancel/'. $payment->id(), array('absolute' => TRUE)),
 
-      'reqtype' => $this->pluginDefinition['req_type'],
       'security_level' => $this->pluginDefinition['security']['security_level'],
-
-
-//      'up_start_url' => $this->pluginDefinition['up_start_url'],
-
-//      'security' => array(
-//        'security_level' => $this->pluginDefinition['security']['security_level'],
-//        'merchant_control_constant' => $this->pluginDefinition['security']['merchant_control_constant'],
-//        'hmac_key' => $this->pluginDefinition['security']['hmac_key'],
-//        'hmac_key_2' => $this->pluginDefinition['security']['hmac_key_2'],
-//        'use_hmac_2' => $this->pluginDefinition['security']['use_hmac_2'],
-//      ),
     );
 
     $http_build_query_paymentArray = "https://payment.datatrans.biz/upp/jsp/upStart.jsp?" . http_build_query($paymentArray);
