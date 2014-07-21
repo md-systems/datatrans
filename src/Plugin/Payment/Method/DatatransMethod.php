@@ -17,6 +17,9 @@ use Drupal\payment\Plugin\Payment\Status\PaymentStatusManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Drupal\Component\Plugin\ConfigurablePluginInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
+use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
  * Datatrans payment method.
@@ -115,7 +118,7 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
       'merchantId' => $this->pluginDefinition['merchant_id'],
       'amount' => intval($payment->getamount() * $currency->getSubunits()), // TODO: Check if it works
       'currency' => $payment->getCurrencyCode(),
-      'refno' => '16543', //TODO: Append to a unique reference number (order number)
+      'refno' => $payment->id(),
       'sign' => $sign,
 
       'successUrl' => url('datatrans/success/'. $payment->id(), array('absolute' => TRUE)),
@@ -127,8 +130,12 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
 
     $http_build_query_paymentArray = "https://payment.datatrans.biz/upp/jsp/upStart.jsp?" . http_build_query($paymentArray);
 
-    debug($http_build_query_paymentArray);
-    // @todo: Implement redirect (commerce_datatrans_redirect_form) to and from Datatrans functionality (success/error/cancel), hashmac check (commerce_datatrans_redirect_form_validate).
+    $response = new RedirectResponse($http_build_query_paymentArray);
+    $listener = function(FilterResponseEvent $event) use ($response) {
+      $event->setResponse($response);
+    };
+    $this->eventDispatcher->addListener(KernelEvents::RESPONSE, $listener, 999);
+
   }
 
   /**

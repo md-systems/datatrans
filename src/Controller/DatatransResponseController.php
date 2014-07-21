@@ -37,11 +37,15 @@ class DatatransResponseController {
     }
 
     if ($datatrans['security_level'] == 2) {
-      if ($payment_method['security']['use_hmac_2'])
+      if ($payment_method['security']['use_hmac_2']) {
         $key = pack("H*", $payment_method['security']['hmac_key_2']);
-      else
+      }
+      else {
+        $hmac_data = $payment_method['merchant_id'] . $datatrans['amount'] . $datatrans['currency'] . $payment->id();
         $key = pack("H*", $payment_method['security']['hmac_key']);
-      $sign = hash_hmac('md5', $payment_method['merchant_id'] . $datatrans['amount'] . $datatrans['currency'] . $payment->id(), $key);
+        $sign = hash_hmac('md5', $hmac_data , $key);
+      }
+
       if ($sign != $datatrans['sign']) {
         drupal_set_message(t('Datatrans communication failure. Invalid data received from datatrans. Please contact the system administrator.'), 'error');
 
