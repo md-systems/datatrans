@@ -63,8 +63,19 @@ class DatatransResponseController {
       $payment->getPaymentType()->resumeContext();
     }
 
-    debug($payment_method);
-    debug($_POST);
+    $payment_method = $payment->getPaymentMethod();
+
+    if(isset($_POST['refno'])) {
+      $payment_method->setRefno($_POST['refno']);
+    }
+
+    if(isset($_POST['uppCustomerDetails']) && $_POST['uppCustomerDetails'] == 'yes') {
+      $payment_method->setAddress(array(
+        'uppCustomerCity' => $_POST['uppCustomerCity'],
+        'uppCustomerStreet' => $_POST['uppCustomerStreet'],
+        'uppCustomerZipCode' => $_POST['uppCustomerZipCode'],
+      ));
+    }
 
     $payment->setStatus(\Drupal::service('plugin.manager.payment.status')->createInstance('payment_success'));
     $payment->save();

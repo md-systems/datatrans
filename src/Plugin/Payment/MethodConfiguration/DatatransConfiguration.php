@@ -156,6 +156,8 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
     return $this;
   }
 
+
+
   /**
    * Gets the Datatrans Request Type.
    *
