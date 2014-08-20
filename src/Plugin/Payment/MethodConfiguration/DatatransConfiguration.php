@@ -9,6 +9,7 @@ namespace Drupal\payment_datatrans\Plugin\Payment\MethodConfiguration;
 
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\payment\Plugin\Payment\MethodConfiguration\PaymentMethodConfigurationBase;
@@ -332,7 +333,7 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
   /**
    * {@inheritdoc}
    */
-  public function buildConfigurationForm(array $form, array &$form_state) {
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
     $form['#element_validate'][] = array($this, 'formElementsValidate');
 
