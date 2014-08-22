@@ -121,6 +121,25 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
   }
 
   /**
+   * Sets the customer name
+   *
+   * @param $first_name
+   *  Customer First Name
+   *
+   * @param $second_name
+   *  Customer Second Name
+   *
+   * @return \Drupal\payment_datatrans\Plugin\Payment\MethodConfiguration\DatatransConfiguration
+   *   The configuration object for the Datatrans payment method plugin.
+   */
+  public function setCustomerName($first_name, $second_name) {
+    $this->configuration['uppCustomerFirstName'] = $first_name;
+    $this->configuration['uppCustomerLastName'] = $second_name;
+
+    return $this;
+  }
+
+  /**
    * Performs the actual payment execution.
    */
   protected function doExecutePayment() {
@@ -160,7 +179,7 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
       'security_level' => $this->pluginDefinition['security']['security_level'],
     );
 
-    $http_build_query_paymentArray = "https://payment.datatrans.biz/upp/jsp/upStart.jsp?" . http_build_query($paymentArray);
+    $http_build_query_paymentArray = url($this->pluginDefinition['up_start_url'], array('absolute' => TRUE, 'query' => $paymentArray));
 
     $response = new RedirectResponse($http_build_query_paymentArray);
     $listener = function(FilterResponseEvent $event) use ($response) {

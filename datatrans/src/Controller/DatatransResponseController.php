@@ -77,6 +77,10 @@ class DatatransResponseController {
       ));
     }
 
+    if(isset($_POST['uppCustomerFirstName']) && isset($_POST['uppCustomerLastName'])) {
+      $payment_method->setCustomerName($_POST['uppCustomerFirstName'], $_POST['uppCustomerLastName']);
+    }
+
     $payment->setStatus(\Drupal::service('plugin.manager.payment.status')->createInstance('payment_success'));
     $payment->save();
     $payment->getPaymentType()->resumeContext();

@@ -77,7 +77,7 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
   public function defaultConfiguration() {
     return parent::defaultConfiguration() + array(
       'merchant_id' => '1000011011',
-      'up_start_url' => 'https://pilot.datatrans.biz/upp/jsp/upStart.jsp',
+      'up_start_url' => 'https://payment.datatrans.biz/upp/jsp/upStart.jsp',
       'req_type' => 'CAA',
       'security' => array(
         'security_level' => 2,
@@ -436,7 +436,7 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
   /**
    * Implements form validate callback for self::formElements().
    */
-  public function formElementsValidate(array $element, array &$form_state, array $form) {
+  public function formElementsValidate(array $element, FormStateInterface $form_state, array $form) {
     $values = NestedArray::getValue($form_state['values'], $element['#parents']);
 
     $this->setMerchantId($values['merchant_id'])

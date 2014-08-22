@@ -1,0 +1,6 @@
+datatrans_test.datatrans_form:
+  path: '/datatrans-form'
+  defaults:
+    _form: '\Drupal\payment_datatrans_test\DatatransForm'
+  requirements:
+    _access: 'TRUE'
