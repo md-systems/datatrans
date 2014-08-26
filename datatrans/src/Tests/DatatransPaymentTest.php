@@ -10,10 +10,7 @@ namespace Drupal\payment_datatrans\Tests;
 use Drupal\field\Entity\FieldInstanceConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\NodeTypeInterface;
-use Drupal\payment\Tests\Generate;
 use Drupal\simpletest\WebTestBase;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Validator\Constraints\True;
 
 /**
  * Token integration.
@@ -66,7 +63,7 @@ class DatatransPaymentTest extends WebTestBase {
           'currency_code' => 'CHF',
           'name' => 'payment_basic',
           'payment_id' => NULL,
-          'quantity' => '1',
+          'quantity' => '2',
           'description' => 'pay me man',
         ),
         'plugin_id' => 'payment_basic',
@@ -74,29 +71,129 @@ class DatatransPaymentTest extends WebTestBase {
       'title' => $title,
     ));
 
-    $this->admin_user = $this->drupalCreateUser(array('administer permissions', 'administer node fields', 'administer node display',
-      'payment.payment_method_configuration.view.any', 'payment.payment_method_configuration.update.any',
-      'access content', 'access administration pages', 'access user profiles'));
+    // Create user with correct permission.
+    $this->admin_user = $this->drupalCreateUser(array('payment.payment_method_configuration.view.any',
+      'payment.payment_method_configuration.update.any', 'access content', 'access administration pages',
+      'access user profiles', 'payment.payment.view.any'));
     $this->drupalLogin($this->admin_user);
   }
 
   /**
-   * Tests token integration.
+   * Tests datatrans payment integration.
    */
   function testDatatransPayment() {
-    // Modifies the datatrans up_start_url for testing purposes.
-    $edit = array();
+    // Modifies the datatrans configuration for testing purposes.
     $generator = \Drupal::urlGenerator();
-    $edit['plugin_form[up_start_url]'] = $generator->generateFromRoute('datatrans_test.datatrans_form', array(), array('absolute' => TRUE));
+    $datatrans_configuration = array(
+      'plugin_form[up_start_url]' => $generator->generateFromRoute('datatrans_test.datatrans_form', array(), array('absolute' => TRUE)),
+      'plugin_form[merchant_id]' => '123456789',
+      'plugin_form[message][value]' => 'Datatrans',
+      'plugin_form[req_type]' => 'CAA',
+      'plugin_form[security][security_level]' => '2',
+      'plugin_form[security][merchant_control_constant]' => '',
+      'plugin_form[security][hmac_key]' => '6543123456789',
+      'plugin_form[security][hmac_key_2]' => '',
+    );
+    $this->drupalPostForm('admin/config/services/payment/method/configuration/payment_datatrans', $datatrans_configuration, t('Save'));
 
-    $this->drupalPostForm('admin/config/services/payment/method/configuration/payment_datatrans', $edit, t('Save'));
-
+    // Create datatrans payment
     $this->drupalPostForm('node/' . $this->node->id(), array(), t('Pay'));
+
+    // Retrieve plugin configuration of created node
+    $plugin_configuration = $this->node->{$this->field_name}->plugin_configuration;
+
+    // Array of Datatrans payment method configuration.
+    $datatrans_payment_method_configuration = entity_load('payment_method_configuration', 'payment_datatrans')->getPluginConfiguration();
+
+    // Check for correct Merchant ID
+    $this->assertText('merchantId' . $datatrans_payment_method_configuration['merchant_id']);
+
+    // Check for correct amount
+    $calculated_amount = $this->calculateAmount($plugin_configuration['amount'], $plugin_configuration['quantity'], $plugin_configuration['currency_code']);
+    $this->assertText('amount' . $calculated_amount);
+
+    // Check for correct success, error and cancel url
+    $this->assertText('successUrl' . $generator->generateFromRoute('payment_datatrans.response_success', array('payment' => 1), array('absolute' => TRUE)));
+    $this->assertText('errorUrl' . $generator->generateFromRoute('payment_datatrans.response_error', array('payment' => 1), array('absolute' => TRUE)));
+    $this->assertText('cancelUrl' . $generator->generateFromRoute('payment_datatrans.response_cancel', array('payment' => 1), array('absolute' => TRUE)));
+
+    // Check for correct sign with using hmac_key
+    $generated_sign = $this->generateSign($datatrans_payment_method_configuration['merchant_id'],
+      $calculated_amount, $plugin_configuration['currency_code'], 1, $datatrans_payment_method_configuration['security']['hmac_key']);
+    $this->assertText('sign' . $generated_sign);
+
+    // Finish and save payment
+    $this->drupalPostForm(NULL, array(), t('Submit'));
+
+    // Check out the payment overview page
+    $this->drupalGet('admin/content/payment');
+
+    // Check for correct currency code and payment amount
+    $this->assertText('CHF 246.00');
+
+    // Check for correct Payment Method
+    $this->assertText('Datatrans');
+
+    // Check payment configuration (city, street & zipcode)
+    $payment_configuration = entity_load('payment', 1)->getPaymentMethod()->getConfiguration();
+    $this->assertTrue($payment_configuration['uppCustomerCity'], 'city');
+    $this->assertTrue($payment_configuration['uppCustomerStreet'], 'street');
+    $this->assertTrue($payment_configuration['uppCustomerZipCode'], 'CHE');
+
+
   }
 
   /**
+   * Calculates the total amount
+   *
+   * @param $amount
+   *  Base amount
+   * @param $quantity
+   *  Quantity
+   * @param $currency_code
+   *  Currency code
+   * @return int
+   *  Returns the total amount
+   */
+  function calculateAmount($amount, $quantity, $currency_code) {
+    $base_amount = $amount * $quantity;
+    $currency = \Drupal\currency\Entity\Currency::load($currency_code);
+    return intval($base_amount * $currency->getSubunits());
+  }
+
+  /**
+   * Generates the sign
+   *
+   * @param $merchant_id
+   *  Merchant ID
+   * @param $calculated_amount
+   *  Calculated Amount see: calculateAmount()
+   * @param $currency_code
+   *  Currency Code
+   * @param $payment_id
+   *  Payment ID
+   * @param $hmac_key
+   *  hmac key
+   * @return string
+   *  Returns the sign
+   */
+  function generateSign($merchant_id, $calculated_amount, $currency_code, $payment_id, $hmac_key) {
+    return hash_hmac(
+      'md5',
+      $merchant_id . $calculated_amount . $currency_code . $payment_id,
+      pack("H*", $hmac_key)
+    );
+  }
+
+  /**
+   * Adds the payment field to the node
+   *
    * @param NodeTypeInterface $type
+   *   Node type interface type
+   *
    * @param string $label
+   *   Field label
+   *
    * @return \Drupal\Core\Entity\EntityInterface|static
    */
   function node_add_payment_form_field(NodeTypeInterface $type, $label = 'Payment Label') {

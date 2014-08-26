@@ -65,20 +65,20 @@ class DatatransResponseController {
 
     $payment_method = $payment->getPaymentMethod();
 
-    if(isset($_POST['refno'])) {
-      $payment_method->setRefno($_POST['refno']);
+    if(isset($datatrans['refno'])) {
+      $payment_method->setRefno($datatrans['refno']);
     }
 
-    if(isset($_POST['uppCustomerDetails']) && $_POST['uppCustomerDetails'] == 'yes') {
+    if(isset($datatrans['uppCustomerDetails']) && $datatrans['uppCustomerDetails'] == 'yes') {
       $payment_method->setAddress(array(
-        'uppCustomerCity' => $_POST['uppCustomerCity'],
-        'uppCustomerStreet' => $_POST['uppCustomerStreet'],
-        'uppCustomerZipCode' => $_POST['uppCustomerZipCode'],
+        'uppCustomerCity' => $datatrans['uppCustomerCity'],
+        'uppCustomerStreet' => $datatrans['uppCustomerStreet'],
+        'uppCustomerZipCode' => $datatrans['uppCustomerZipCode'],
       ));
     }
 
-    if(isset($_POST['uppCustomerFirstName']) && isset($_POST['uppCustomerLastName'])) {
-      $payment_method->setCustomerName($_POST['uppCustomerFirstName'], $_POST['uppCustomerLastName']);
+    if(isset($datatrans['uppCustomerFirstName']) && isset($datatrans['uppCustomerLastName'])) {
+      $payment_method->setCustomerName($datatrans['uppCustomerFirstName'], $datatrans['uppCustomerLastName']);
     }
 
     $payment->setStatus(\Drupal::service('plugin.manager.payment.status')->createInstance('payment_success'));

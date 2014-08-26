@@ -23,7 +23,32 @@ class DatatransForm extends FormBase {
    * {@inheritdoc}.
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    drupal_set_message('Hello How are you!');
+    $generator = \Drupal::urlGenerator();
+    foreach($_GET as $key => $value) {
+      drupal_set_message($key . $value);
+    }
+
+    $form_elements = array (
+      'security_level' => '2',
+      'amount' => '24600',
+      'uppCustomerFirstName' => 'firstname',
+      'sign' => 'eyuidfghj',
+      'uppCustomerCity' => 'city',
+      'uppCustomerZipCode' => 'CHE',
+      'uppCustomerDetails' => 'yes',
+      'uppCustomerStreet' => 'street',
+      'currency' => 'CHF',
+      'status' => 'success',
+    );
+
+    foreach($form_elements as $key => $value) {
+      $form[$key] = array(
+        '#type' => 'hidden',
+        '#value' => $value,
+      );
+    }
+
+    $form['#action'] = $generator->generateFromRoute('payment_datatrans.response_success', array('payment' => 1));
     $form['actions']['#type'] = 'actions';
     $form['actions']['submit'] = array(
       '#type' => 'submit',
