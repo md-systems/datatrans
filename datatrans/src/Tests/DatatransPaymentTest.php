@@ -140,7 +140,12 @@ class DatatransPaymentTest extends WebTestBase {
     $this->assertTrue($payment_configuration['uppCustomerStreet'], 'street');
     $this->assertTrue($payment_configuration['uppCustomerZipCode'], 'CHE');
 
-
+    // Check for detailed payment information
+    $this->drupalGet('payment/1');
+    $this->assertText('pay me man');
+    $this->assertText('CHF 123.00');
+    $this->assertText('CHF 246.00');
+    $this->assertText('Payment method Datatrans');
   }
 
   /**
