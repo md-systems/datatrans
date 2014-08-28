@@ -54,7 +54,7 @@ class DatatransPaymentTest extends WebTestBase {
     // Create article node
     $title = $this->randomString();
 
-    // Create node
+    // Create node with payment plugin configuration
     $this->node = $this->drupalCreateNode(array(
       'type' => 'article',
       $this->field_name => array(
@@ -79,9 +79,9 @@ class DatatransPaymentTest extends WebTestBase {
   }
 
   /**
-   * Tests datatrans payment integration.
+   * Tests succesfull Datatrans payment.
    */
-  function testDatatransPayment() {
+  function testDatatransSuccessPayment() {
     // Modifies the datatrans configuration for testing purposes.
     $generator = \Drupal::urlGenerator();
     $datatrans_configuration = array(
@@ -118,9 +118,7 @@ class DatatransPaymentTest extends WebTestBase {
     $this->assertText('cancelUrl' . $generator->generateFromRoute('payment_datatrans.response_cancel', array('payment' => 1), array('absolute' => TRUE)));
 
     // Check for correct sign with using hmac_key
-    $generated_sign = $this->generateSign($datatrans_payment_method_configuration['merchant_id'],
-      $calculated_amount, $plugin_configuration['currency_code'], 1, $datatrans_payment_method_configuration['security']['hmac_key']);
-    $this->assertText('sign' . $generated_sign);
+    $this->assertText('sign' . '309dd30ad0cb07770d3a1ffda64585a9');
 
     // Finish and save payment
     $this->drupalPostForm(NULL, array(), t('Submit'));
@@ -135,7 +133,9 @@ class DatatransPaymentTest extends WebTestBase {
     $this->assertText('Datatrans');
 
     // Check payment configuration (city, street & zipcode)
-    $payment_configuration = entity_load('payment', 1)->getPaymentMethod()->getConfiguration();
+    /** @var \Drupal\payment\Entity\PaymentInterface $payment */
+    $payment = entity_load('payment', 1);
+    $payment_configuration = $payment->getPaymentMethod()->getConfiguration();
     $this->assertTrue($payment_configuration['uppCustomerCity'], 'city');
     $this->assertTrue($payment_configuration['uppCustomerStreet'], 'street');
     $this->assertTrue($payment_configuration['uppCustomerZipCode'], 'CHE');
@@ -145,7 +145,81 @@ class DatatransPaymentTest extends WebTestBase {
     $this->assertText('pay me man');
     $this->assertText('CHF 123.00');
     $this->assertText('CHF 246.00');
-    $this->assertText('Payment method Datatrans');
+    $this->assertText('Completed');
+  }
+
+  /**
+   * Tests failing Datatrans payment.
+   * The test fails by providing an incorrect hmac key.
+   */
+  function testDatatransFailedPayment() {
+    // Modifies the datatrans configuration for testing purposes.
+    $generator = \Drupal::urlGenerator();
+    $datatrans_configuration = array(
+      'plugin_form[up_start_url]' => $generator->generateFromRoute('datatrans_test.datatrans_form', array(), array('absolute' => TRUE)),
+      'plugin_form[merchant_id]' => '123456789',
+      'plugin_form[message][value]' => 'Datatrans',
+      'plugin_form[req_type]' => 'CAA',
+      'plugin_form[security][security_level]' => '2',
+      'plugin_form[security][merchant_control_constant]' => '',
+      'plugin_form[security][hmac_key]' => '1234', // For failed test we give a wrong hmac_key
+      'plugin_form[security][hmac_key_2]' => '',
+    );
+    $this->drupalPostForm('admin/config/services/payment/method/configuration/payment_datatrans', $datatrans_configuration, t('Save'));
+
+    // Create datatrans payment
+    $this->drupalPostForm('node/' . $this->node->id(), array(), t('Pay'));
+
+    // Check for incorrect sign.
+    $this->assertNoText('sign309dd30ad0cb07770d3a1ffda64585a9');
+
+    // Finish and save payment
+    $this->drupalPostForm(NULL, array(), t('Submit'));
+
+    // Check out the payment overview page
+    $this->drupalGet('admin/content/payment');
+    $this->assertText('Failed');
+    $this->assertNoText('Success');
+
+    // Check for detailed payment information
+    $this->drupalGet('payment/1');
+    $this->assertText('Failed');
+    $this->assertNoText('Success');
+  }
+
+  /**
+   * Tests cancelled Datatrans payment.
+   */
+  function testDatatransCancelPayment() {
+    // Modifies the datatrans configuration for testing purposes.
+    $generator = \Drupal::urlGenerator();
+    $datatrans_configuration = array(
+      'plugin_form[up_start_url]' => $generator->generateFromRoute('datatrans_test.datatrans_form', array(), array('absolute' => TRUE)),
+      'plugin_form[merchant_id]' => '123456789',
+      'plugin_form[message][value]' => 'Datatrans',
+      'plugin_form[req_type]' => 'CAA',
+      'plugin_form[security][security_level]' => '2',
+      'plugin_form[security][merchant_control_constant]' => '',
+      'plugin_form[security][hmac_key]' => '1234', // For failed test we give a wrong hmac_key
+      'plugin_form[security][hmac_key_2]' => '',
+    );
+    $this->drupalPostForm('admin/config/services/payment/method/configuration/payment_datatrans', $datatrans_configuration, t('Save'));
+
+    // Create datatrans payment
+    $this->drupalPostForm('node/' . $this->node->id(), array(), t('Pay'));
+
+    // Check for incorrect sign.
+    $this->assertNoText('sign309dd30ad0cb07770d3a1ffda64585a9');
+
+    // Check out the payment overview page
+    $this->drupalGet('admin/content/payment');
+    $this->assertText('Failed');
+    $this->assertNoText('Success');
+
+    // Check for detailed payment information
+    $this->drupalGet('payment/1');
+    $this->assertText('Failed');
+    $this->assertNoText('Success');
   }
 
   /**

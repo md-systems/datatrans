@@ -32,7 +32,7 @@ class DatatransForm extends FormBase {
       'security_level' => '2',
       'amount' => '24600',
       'uppCustomerFirstName' => 'firstname',
-      'sign' => 'eyuidfghj',
+      'sign' => '309dd30ad0cb07770d3a1ffda64585a9',
       'uppCustomerCity' => 'city',
       'uppCustomerZipCode' => 'CHE',
       'uppCustomerDetails' => 'yes',

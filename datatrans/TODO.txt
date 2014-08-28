@@ -31,3 +31,56 @@ array (
   'status' => 'success',
   'uppMsgType' => 'web',
 )
+
+=== CALLBACKS ===
+
+datatrans:
+array (
+  'security_level' => '2',
+  'amount' => '24600',
+  'uppCustomerFirstName' => 'firstname',
+  'sign' => '309dd30ad0cb07770d3a1ffda64585a9',
+  'uppCustomerCity' => 'city',
+  'uppCustomerZipCode' => 'CHE',
+  'uppCustomerDetails' => 'yes',
+  'uppCustomerStreet' => 'street',
+  'currency' => 'CHF',
+  'status' => 'success',
+  'form_build_id' => 'form-lR_c4Z2jkxkI3CYeixa1pOa0FKw6Dl2tkuhny7Wjx78',
+  'form_token' => 'H8K-_3FaOm7tcdhd9tWC2WYxmSafJIFM3B453-ZY07g',
+  'form_id' => 'datatrans_form',
+  'op' => 'Submit',
+)
+
+payment method:
+array (
+  'merchant_id' => '123456789',
+  'up_start_url' => 'http://d8/datatrans-form',
+  'req_type' => 'CAA',
+  'security' =>
+  array (
+    'security_level' => '2',
+    'merchant_control_constant' => '',
+    'hmac_key' => '6543123456789',
+    'hmac_key_2' => '',
+    'use_hmac_2' => 0,
+  ),
+  'active' => true,
+  'deriver' => 'Drupal\\payment_datatrans\\Plugin\\Payment\\Method\\DatatransDeriver',
+  'id' => 'payment_datatrans',
+  'label' =>
+  Drupal\Core\StringTranslation\TranslationWrapper::__set_state(array(
+     'string' => 'Datatrans',
+     'arguments' =>
+    array (
+    ),
+     'options' =>
+    array (
+    ),
+     'stringTranslation' => NULL,
+  )),
+  'class' => 'Drupal\\payment_datatrans\\Plugin\\Payment\\Method\\DatatransMethod',
+  'provider' => 'payment_datatrans',
+  'message_text' => '',
+  'message_text_format' => '',
+)

@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
  * @package Drupal\payment_datatrans\Controller
  */
 class DatatransResponseController {
+
   /**
    * Page callback for processing successful Datatrans response.
    *
@@ -24,66 +25,42 @@ class DatatransResponseController {
    *   The Payment entity type.
    */
   public function processSuccessResponse(Request $request, PaymentInterface $payment) {
-    $payment_method = $payment->getPaymentMethod()->getPluginDefinition();
+    // @todo this needs to be checked to match the payment method settings AND being valid with its keys and data.
+    $post_data = $request->request->all();
 
-    $datatrans = $request->request->all();
+    if ($post_data['status'] == 'error') {
+      $this->throwException($payment, $this->_commerce_datatrans_map_error_code($post_data['errorCode']));
+    }
 
-    if (empty($datatrans)) {
-      drupal_set_message(t('Datatrans communication failure. Invalid data received from datatrans. Please contact the system administrator.'), 'error');
+    // @todo this is the internal guaranteed configurtion that is to be considered authoritative.
+    $plugin_definition = $payment->getPaymentMethod()->getPluginDefinition();
 
-      $payment->setStatus(\Drupal::service('plugin.manager.payment.status')->createInstance('payment_failed'));
+    // @todo the request can craft to remove security check. thi NEEDS to be a payment method setting (with matching validation of the request in addition).
+    if (empty($post_data) || $post_data['security_level'] != $plugin_definition['security']['security_level']) {
+      $this->throwException($payment);
+    }
+
+    if ($plugin_definition['security']['security_level'] == 2) {
+      // Generates the sign
+      $sign = $this->generateSign($post_data, $plugin_definition, $payment);
+
+      if ($sign != $post_data['sign'] || empty($sign) || empty($post_data['sign'])) {
+        $this->throwException($payment);
+      }
+    }
+
+    if($post_data['status'] == 'success') {
+      // Store data in the payment configuration
+      $this->storeConfiguration($post_data, $payment);
+
+      // Save the succesfull payment
+      $payment->setStatus(\Drupal::service('plugin.manager.payment.status')->createInstance('payment_success'));
       $payment->save();
       $payment->getPaymentType()->resumeContext();
+      return;
     }
 
-    if ($datatrans['security_level'] == 2) {
-      if ($payment_method['security']['use_hmac_2']) {
-        $key = pack("H*", $payment_method['security']['hmac_key_2']);
-      }
-      else {
-        $hmac_data = $payment_method['merchant_id'] . $datatrans['amount'] . $datatrans['currency'] . $payment->id();
-        $key = pack("H*", $payment_method['security']['hmac_key']);
-        $sign = hash_hmac('md5', $hmac_data , $key);
-      }
-
-      if ($sign != $datatrans['sign']) {
-        drupal_set_message(t('Datatrans communication failure. Invalid data received from datatrans. Please contact the system administrator.'), 'error');
-
-        $payment->setStatus(\Drupal::service('plugin.manager.payment.status')->createInstance('payment_failed'));
-        $payment->save();
-        $payment->getPaymentType()->resumeContext();
-      }
-    }
-
-    if ($datatrans['status'] == 'error') {
-      drupal_set_message($this->_commerce_datatrans_map_error_code($datatrans['errorCode']), 'error');
-
-      $payment->setStatus(\Drupal::service('plugin.manager.payment.status')->createInstance('payment_failed'));
-      $payment->save();
-      $payment->getPaymentType()->resumeContext();
-    }
-
-    $payment_method = $payment->getPaymentMethod();
-
-    if(isset($datatrans['refno'])) {
-      $payment_method->setRefno($datatrans['refno']);
-    }
-
-    if(isset($datatrans['uppCustomerDetails']) && $datatrans['uppCustomerDetails'] == 'yes') {
-      $payment_method->setAddress(array(
-        'uppCustomerCity' => $datatrans['uppCustomerCity'],
-        'uppCustomerStreet' => $datatrans['uppCustomerStreet'],
-        'uppCustomerZipCode' => $datatrans['uppCustomerZipCode'],
-      ));
-    }
-
-    if(isset($datatrans['uppCustomerFirstName']) && isset($datatrans['uppCustomerLastName'])) {
-      $payment_method->setCustomerName($datatrans['uppCustomerFirstName'], $datatrans['uppCustomerLastName']);
-    }
-
-    $payment->setStatus(\Drupal::service('plugin.manager.payment.status')->createInstance('payment_success'));
-    $payment->save();
-    $payment->getPaymentType()->resumeContext();
+    $this->throwException($payment);
   }
 
   /**
@@ -108,6 +85,55 @@ class DatatransResponseController {
     $payment->setStatus(\Drupal::service('plugin.manager.payment.status')->createInstance('payment_cancelled'));
     $payment->save();
     $payment->getPaymentType()->resumeContext();
+  }
+
+  /**
+   * Generates the server side sign to compare with the datatrans post data.
+   *
+   * @param $post_data
+   *  Datatrans post data
+   * @param $payment_method
+   *  Payment Method
+   * @param PaymentInterface $payment
+   *  Payment Interface
+   * @return string
+   *  Generated Sign
+   */
+  public function generateSign($post_data, $payment_method, PaymentInterface $payment) {
+    if($payment_method['security']['hmac_key'] || $payment_method['security']['hmac_key_2']) {
+      if ($payment_method['security']['use_hmac_2']) {
+        $key = pack("H*", $payment_method['security']['hmac_key_2']);
+      }
+      else {
+        $key = pack("H*", $payment_method['security']['hmac_key']);
+      }
+
+      $hmac_data = $payment_method['merchant_id'] . $post_data['amount'] . $post_data['currency'] . $payment->id();
+      return hash_hmac('md5', $hmac_data , $key);
+    }
+
+    $this->throwException($payment);
+  }
+
+  /**
+   * Throws exception and sets drupal error message.
+   *
+   * @param PaymentInterface $payment
+   *  Payment Interface
+   * @param string $message
+   *  Exception Message to be thrown
+   * @param string $status
+   *  Payment Status
+   * @throws \Exception
+   *  Throws Exception
+   */
+  public function throwException($payment, $message = 'Datatrans communication failure. Invalid data received from datatrans. Please contact the system administrator.', $status = 'payment_failed') {
+    drupal_set_message(t($message), 'error');
+
+    $payment->setStatus(\Drupal::service('plugin.manager.payment.status')->createInstance($status));
+    $payment->save();
+    $payment->getPaymentType()->resumeContext();
+    throw new \Exception($message);
   }
 
   /**
@@ -213,5 +239,35 @@ class DatatransResponseController {
     }
 
     return $message;
+  }
+
+  /**
+   * Stores configuration data
+   *
+   * @param $post_data
+   *  Datatrans Post Data
+   * @param PaymentInterface $payment
+   *  Payment Interface
+   */
+  public function storeConfiguration($post_data, PaymentInterface $payment) {
+    /** @var \Drupal\payment_datatrans\Plugin\Payment\Method\DatatransMethod $payment_method */
+    $payment_method = $payment->getPaymentMethod();
+
+    if (!empty($post_data['refno'])) {
+      $payment_method->setConfigField('refno', $post_data['refno']);
+    }
+
+    if(!empty($post_data['uppCustomerDetails']) && $post_data['uppCustomerDetails'] == 'yes') {
+      $customer_details = array('uppCustomerTitle', 'uppCustomerName', 'uppCustomerFirstName',
+        'uppCustomerLastName', 'uppCustomerStreet', 'uppCustomerStreet2', 'uppCustomerCity',
+        'uppCustomerCountry', 'uppCustomerZipCode', 'uppCustomerPhone', 'uppCustomerFax',
+        'uppCustomerEmail', 'uppCustomerGender', 'uppCustomerBirthDate', 'uppCustomerLanguage');
+
+      foreach($customer_details as $key) {
+        if(!empty($post_data[$key])) {
+          $payment_method->setConfigField($key, $post_data[$key]);
+        }
+      }
+    }
   }
 }

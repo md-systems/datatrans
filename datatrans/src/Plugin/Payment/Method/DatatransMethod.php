@@ -89,52 +89,12 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
   }
 
   /**
-   * Sets the order reference number
-   *
-   * @param $refno
-   *  Order Reference Number
-   *
-   * @return \Drupal\payment_datatrans\Plugin\Payment\MethodConfiguration\DatatransConfiguration
-   *   The configuration object for the Datatrans payment method plugin.
+   * @param array $key
+   * @param $value
+   * @return $this|void
    */
-  public function setRefno($refno) {
-    $this->configuration['refno'] = $refno;
-
-    return $this;
-  }
-
-  /**
-   * Sets the customer address
-   *
-   * @param array $address
-   *   Customer Address
-   *
-   * @return \Drupal\payment_datatrans\Plugin\Payment\MethodConfiguration\DatatransConfiguration
-   *   The configuration object for the Datatrans payment method plugin.
-   */
-  public function setAddress(array $address) {
-    foreach($address as $key => $value) {
+  public function setConfigField($key, $value) {
       $this->configuration[$key] = $value;
-    }
-
-    return $this;
-  }
-
-  /**
-   * Sets the customer name
-   *
-   * @param $first_name
-   *  Customer First Name
-   *
-   * @param $second_name
-   *  Customer Second Name
-   *
-   * @return \Drupal\payment_datatrans\Plugin\Payment\MethodConfiguration\DatatransConfiguration
-   *   The configuration object for the Datatrans payment method plugin.
-   */
-  public function setCustomerName($first_name, $second_name) {
-    $this->configuration['uppCustomerFirstName'] = $first_name;
-    $this->configuration['uppCustomerLastName'] = $second_name;
 
     return $this;
   }
