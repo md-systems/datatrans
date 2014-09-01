@@ -8,6 +8,7 @@ namespace Drupal\payment_datatrans_test;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\payment_datatrans\DatatransHelper;
 
 /**
  * Implements an example form.
@@ -28,17 +29,21 @@ class DatatransForm extends FormBase {
       drupal_set_message($key . $value);
     }
 
+    /** @var \Drupal\payment\Entity\PaymentInterface $payment */
+    $payment = entity_load('payment', 1);
+
     $form_elements = array (
       'security_level' => '2',
       'amount' => '24600',
       'uppCustomerFirstName' => 'firstname',
-      'sign' => '309dd30ad0cb07770d3a1ffda64585a9',
+      'sign' => \Drupal::state()->get('datatrans.sign') ?: '309dd30ad0cb07770d3a1ffda64585a9',
       'uppCustomerCity' => 'city',
       'uppCustomerZipCode' => 'CHE',
       'uppCustomerDetails' => 'yes',
       'uppCustomerStreet' => 'street',
       'currency' => 'CHF',
       'status' => 'success',
+      'datatrans_key' => DatatransHelper::generateDatatransKey($payment),
     );
 
     foreach($form_elements as $key => $value) {
@@ -48,7 +53,9 @@ class DatatransForm extends FormBase {
       );
     }
 
-    $form['#action'] = $generator->generateFromRoute('payment_datatrans.response_success', array('payment' => 1));
+    $response_url = \Drupal::state()->get('datatrans.return_url') ?: 'payment_datatrans.response_success';
+
+    $form['#action'] = $generator->generateFromRoute($response_url, array('payment' => 1));
     $form['actions']['#type'] = 'actions';
     $form['actions']['submit'] = array(
       '#type' => 'submit',

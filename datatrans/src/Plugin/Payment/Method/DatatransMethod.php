@@ -14,6 +14,7 @@ use Drupal\Core\Utility\Token;
 use Drupal\currency\Entity\Currency;
 use Drupal\payment\Plugin\Payment\Method\PaymentMethodBase;
 use Drupal\payment\Plugin\Payment\Status\PaymentStatusManager;
+use Drupal\payment_datatrans\DatatransHelper;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Drupal\Component\Plugin\ConfigurablePluginInterface;
@@ -94,7 +95,7 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
    * @return $this|void
    */
   public function setConfigField($key, $value) {
-      $this->configuration[$key] = $value;
+    $this->configuration[$key] = $value;
 
     return $this;
   }
@@ -105,6 +106,7 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
   protected function doExecutePayment() {
     $payment = $this->getPayment();
 
+    /** @var \Drupal\currency\Entity\CurrencyInterface $currency */
     $currency = Currency::load($payment->getCurrencyCode());
 
     $sign = null;
@@ -137,6 +139,7 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
       'cancelUrl' => url('datatrans/cancel/'. $payment->id(), array('absolute' => TRUE)),
 
       'security_level' => $this->pluginDefinition['security']['security_level'],
+      'datatrans_key' => DatatransHelper::generateDatatransKey($payment),
     );
 
     $http_build_query_paymentArray = url($this->pluginDefinition['up_start_url'], array('absolute' => TRUE, 'query' => $paymentArray));
@@ -147,6 +150,7 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
     };
     $this->eventDispatcher->addListener(KernelEvents::RESPONSE, $listener, 999);
 
+    $payment->save();
   }
 
   /**
