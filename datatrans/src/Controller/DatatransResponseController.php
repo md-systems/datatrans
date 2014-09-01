@@ -91,7 +91,6 @@ class DatatransResponseController {
     $message = 'Datatrans communication failure. Invalid data received from Datatrans.';
     watchdog('Processing failed with exception @e.', array('@e' => $message)); // deprecated
     drupal_set_message(t('Payment processing failed.'));
-    throw new \Exception($message);
   }
 
   /**
@@ -107,7 +106,6 @@ class DatatransResponseController {
     $message = 'Payment has been cancelled.';
     watchdog('Processing failed with exception @e.', array('@e' => $message)); // deprecated
     drupal_set_message(t('Payment processing failed.'));
-    throw new \Exception($message);
   }
 
   /**

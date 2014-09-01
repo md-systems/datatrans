@@ -81,7 +81,7 @@ class DatatransPaymentTest extends WebTestBase {
   /**
    * Tests succesfull Datatrans payment.
    */
-  function atestDatatransSuccessPayment() {
+  function testDatatransSuccessPayment() {
     // Modifies the datatrans configuration for testing purposes.
     $generator = \Drupal::urlGenerator();
     $datatrans_configuration = array(
@@ -154,7 +154,7 @@ class DatatransPaymentTest extends WebTestBase {
  * Tests failing Datatrans payment.
  * The test fails by providing an incorrect hmac key.
  */
-  function atestDatatransFailedPayment() {
+  function testDatatransFailedPayment() {
     // Modifies the datatrans configuration for testing purposes.
     $generator = \Drupal::urlGenerator();
     $datatrans_configuration = array(
@@ -235,7 +235,7 @@ class DatatransPaymentTest extends WebTestBase {
   /**
    * Tests cancelled Datatrans payment.
    */
-  function atestDatatransCancelPayment() {
+  function testDatatransCancelPayment() {
     // Modifies the datatrans configuration for testing purposes.
     $generator = \Drupal::urlGenerator();
     $datatrans_configuration = array(
