@@ -37,7 +37,7 @@ class DatatransResponseController {
 
       // If Datatrans returns error status.
       if ($post_data['status'] == 'error') {
-        throw new \Exception($this->_commerce_datatrans_map_error_code($post_data['errorCode']));
+        throw new \Exception($this->mapErrorCode($post_data['errorCode']));
       }
 
       // This is the internal guaranteed configuration that is to be considered authoritative.
@@ -159,8 +159,10 @@ class DatatransResponseController {
    *   Provide error code from Datatrans callback.
    * @return bool|FALSE|mixed|string
    *   Returns error message.
+   *
+   * @TODO: Move this method somewhere else.
    */
-  function _commerce_datatrans_map_error_code($code) {
+  function mapErrorCode($code) {
     switch ($code) {
       case '1001':
         $message = t('Datrans transaction failed: missing required parameter.');
