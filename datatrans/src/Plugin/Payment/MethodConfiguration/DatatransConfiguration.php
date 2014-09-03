@@ -157,7 +157,6 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
   }
 
 
-
   /**
    * Gets the Datatrans Request Type.
    *

@@ -109,7 +109,7 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
     /** @var \Drupal\currency\Entity\CurrencyInterface $currency */
     $currency = Currency::load($payment->getCurrencyCode());
 
-    $sign = null;
+    $sign = NULL;
 
     switch ($this->pluginDefinition['security']['security_level']) {
       case 1:
@@ -129,23 +129,25 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
 
     $paymentArray = array(
       'merchantId' => $this->pluginDefinition['merchant_id'],
-      'amount' => intval($payment->getamount() * $currency->getSubunits()), // TODO: Check if it works
+      'amount' => intval($payment->getamount() * $currency->getSubunits()),
+      // TODO: Check if it works
       'currency' => $payment->getCurrencyCode(),
       'refno' => $payment->id(),
       'sign' => $sign,
-
-      'successUrl' => url('datatrans/success/'. $payment->id(), array('absolute' => TRUE)),
-      'errorUrl' => url('datatrans/error/'. $payment->id(), array('absolute' => TRUE)),
-      'cancelUrl' => url('datatrans/cancel/'. $payment->id(), array('absolute' => TRUE)),
-
+      'successUrl' => url('datatrans/success/' . $payment->id(), array('absolute' => TRUE)),
+      'errorUrl' => url('datatrans/error/' . $payment->id(), array('absolute' => TRUE)),
+      'cancelUrl' => url('datatrans/cancel/' . $payment->id(), array('absolute' => TRUE)),
       'security_level' => $this->pluginDefinition['security']['security_level'],
       'datatrans_key' => DatatransHelper::generateDatatransKey($payment),
     );
 
-    $http_build_query_paymentArray = url($this->pluginDefinition['up_start_url'], array('absolute' => TRUE, 'query' => $paymentArray));
+    $http_build_query_paymentArray = url($this->pluginDefinition['up_start_url'], array(
+      'absolute' => TRUE,
+      'query' => $paymentArray
+    ));
 
     $response = new RedirectResponse($http_build_query_paymentArray);
-    $listener = function(FilterResponseEvent $event) use ($response) {
+    $listener = function (FilterResponseEvent $event) use ($response) {
       $event->setResponse($response);
     };
     $this->eventDispatcher->addListener(KernelEvents::RESPONSE, $listener, 999);

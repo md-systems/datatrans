@@ -5,6 +5,7 @@
  */
 
 namespace Drupal\payment_datatrans\Controller;
+
 use Drupal\payment\Entity\PaymentInterface;
 use Drupal\payment_datatrans\DatatransHelper;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,7 +32,7 @@ class DatatransResponseController {
       $post_data = $request->request->all();
 
       // Check if payment is pending.
-      if($post_data['datatrans_key'] != DatatransHelper::generateDatatransKey($payment)) {
+      if ($post_data['datatrans_key'] != DatatransHelper::generateDatatransKey($payment)) {
         throw new \Exception('Invalid datatrans key.');
       }
 
@@ -70,8 +71,7 @@ class DatatransResponseController {
       }
 
       throw new \Exception('Datatrans communication failure. Invalid data received from Datatrans.');
-    }
-    catch (\Exception $e) {
+    } catch (\Exception $e) {
       watchdog('Processing failed with exception @e.', array('@e' => $e->getMessage())); // deprecated
       drupal_set_message(t('Payment processing failed.'));
       $this->savePayment($payment);
@@ -122,7 +122,7 @@ class DatatransResponseController {
    * @throws \Exception
    */
   public function generateSign($plugin_definition, PaymentInterface $payment, $post_data) {
-    if($plugin_definition['security']['hmac_key'] || $plugin_definition['security']['hmac_key_2']) {
+    if ($plugin_definition['security']['hmac_key'] || $plugin_definition['security']['hmac_key_2']) {
       if ($plugin_definition['security']['use_hmac_2']) {
         $key = pack("H*", $plugin_definition['security']['hmac_key_2']);
       }
@@ -132,7 +132,7 @@ class DatatransResponseController {
 
       $hmac_data = $plugin_definition['merchant_id'] . $post_data['amount'] . $post_data['currency'] . $payment->id();
 
-      return hash_hmac('md5', $hmac_data , $key);
+      return hash_hmac('md5', $hmac_data, $key);
     }
 
     throw new \Exception('Problem generating sign.');
@@ -147,7 +147,8 @@ class DatatransResponseController {
    *  Payment Status
    */
   public function savePayment(PaymentInterface $payment, $status = 'payment_failed') {
-    $payment->setStatus(\Drupal::service('plugin.manager.payment.status')->createInstance($status));
+    $payment->setStatus(\Drupal::service('plugin.manager.payment.status')
+      ->createInstance($status));
     $payment->save();
     $payment->getPaymentType()->resumeContext();
   }
@@ -274,11 +275,24 @@ class DatatransResponseController {
     $payment_method = $payment->getPaymentMethod();
 
     if (!empty($post_data['uppCustomerDetails']) && $post_data['uppCustomerDetails'] == 'yes') {
-      $customer_details = array('uppCustomerTitle', 'uppCustomerName', 'uppCustomerFirstName',
-        'uppCustomerLastName', 'uppCustomerStreet', 'uppCustomerStreet2', 'uppCustomerCity',
-        'uppCustomerCountry', 'uppCustomerZipCode', 'uppCustomerPhone', 'uppCustomerFax',
-        'uppCustomerEmail', 'uppCustomerGender', 'uppCustomerBirthDate', 'uppCustomerLanguage',
-        'refno');
+      $customer_details = array(
+        'uppCustomerTitle',
+        'uppCustomerName',
+        'uppCustomerFirstName',
+        'uppCustomerLastName',
+        'uppCustomerStreet',
+        'uppCustomerStreet2',
+        'uppCustomerCity',
+        'uppCustomerCountry',
+        'uppCustomerZipCode',
+        'uppCustomerPhone',
+        'uppCustomerFax',
+        'uppCustomerEmail',
+        'uppCustomerGender',
+        'uppCustomerBirthDate',
+        'uppCustomerLanguage',
+        'refno'
+      );
 
       foreach ($customer_details as $key) {
         if (!empty($post_data[$key])) {

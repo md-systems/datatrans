@@ -67,13 +67,13 @@ class DatatransDeriver extends DeriverBase implements ContainerDeriverInterface 
             'merchant_id' => $configuration_plugin->getMerchantId(),
             'up_start_url' => $configuration_plugin->getUpStartUrl(),
             'req_type' => $configuration_plugin->getReqType(),
-                  'security' => array(
-                    'security_level' => $configuration_plugin->getSecurityLevel(),
-                    'merchant_control_constant' => $configuration_plugin->getMerchantControlConstant(),
-                    'hmac_key' => $configuration_plugin->getHmacKey(),
-                    'hmac_key_2' => $configuration_plugin->getHmacKeyTwo(),
-                    'use_hmac_2' => $configuration_plugin->getUseHmacTwo(),
-                  ),
+            'security' => array(
+              'security_level' => $configuration_plugin->getSecurityLevel(),
+              'merchant_control_constant' => $configuration_plugin->getMerchantControlConstant(),
+              'hmac_key' => $configuration_plugin->getHmacKey(),
+              'hmac_key_2' => $configuration_plugin->getHmacKeyTwo(),
+              'use_hmac_2' => $configuration_plugin->getUseHmacTwo(),
+            ),
           ) + $base_plugin_definition;
       }
     }
