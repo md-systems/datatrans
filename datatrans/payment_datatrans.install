@@ -12,17 +12,17 @@ use Drupal\Component\Utility\SafeMarkup;
  */
 function payment_datatrans_requirements($phase) {
   $requirements = array();
-  
+
   // Check the server's ability to indicate upload progress.
   if ($phase == 'runtime') {
     $datatrans_payment_method_configuration = entity_load('payment_method_configuration', 'payment_datatrans')->getPluginConfiguration();
 
-    if ($datatrans_payment_method_configuration['security']['security_level'] != 2 || empty($datatrans_payment_method_configuration['security']['hmac_key'])) {
+    if (empty($datatrans_payment_method_configuration['security']) || $datatrans_payment_method_configuration['security']['security_level'] != 2 || empty($datatrans_payment_method_configuration['security']['hmac_key'])) {
       if (empty($datatrans_payment_method_configuration['security']['hmac_key'])) {
         $value = t('No HMAC key defined');
       }
 
-      if ($datatrans_payment_method_configuration['security']['security_level'] != 2) {
+      if (empty($datatrans_payment_method_configuration['security']) || $datatrans_payment_method_configuration['security']['security_level'] != 2) {
         $value = t('Insecure security level');
       }
 
