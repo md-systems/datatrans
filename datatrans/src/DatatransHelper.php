@@ -3,7 +3,7 @@
  * @file
  * Contains \Drupal\payment_datatrans\DatatransHelper.
  *
- * Set class info here
+ * Datatrans Helper class.
  */
 namespace Drupal\payment_datatrans;
 
@@ -17,8 +17,12 @@ use Drupal\payment\Entity\PaymentInterface;
 class DatatransHelper {
 
   /**
+   * Used for generation an internal key for validation purposes.
+   *
    * @param PaymentInterface $payment
+   *   Payment Interface.
    * @return string
+   *   The generated key.
    */
   public static function generateDatatransKey(PaymentInterface $payment) {
     return Crypt::hashBase64($payment->id() . $payment->getStatus()
