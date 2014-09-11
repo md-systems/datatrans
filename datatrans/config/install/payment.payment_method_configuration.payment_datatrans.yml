@@ -6,4 +6,4 @@ pluginConfiguration:
   message_text_format: plain_text
   status: payment_pending
 pluginId: payment_datatrans
-status: false
+status: true

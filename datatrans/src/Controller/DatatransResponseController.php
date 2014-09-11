@@ -147,7 +147,7 @@ class DatatransResponseController {
    *  Payment Status
    */
   public function savePayment(PaymentInterface $payment, $status = 'payment_failed') {
-    $payment->setStatus(\Drupal::service('plugin.manager.payment.status')
+    $payment->setPaymentStatus(\Drupal::service('plugin.manager.payment.status')
       ->createInstance($status));
     $payment->save();
     $payment->getPaymentType()->resumeContext();

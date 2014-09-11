@@ -25,7 +25,7 @@ class DatatransHelper {
    *   The generated key.
    */
   public static function generateDatatransKey(PaymentInterface $payment) {
-    return Crypt::hashBase64($payment->id() . $payment->getStatus()
+    return Crypt::hashBase64($payment->id() . $payment->getPaymentStatus()
       ->getPluginId() . Settings::getHashSalt() . \Drupal::service('private_key')
       ->get());
   }

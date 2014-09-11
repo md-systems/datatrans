@@ -135,7 +135,11 @@ class DatatransPaymentTest extends WebTestBase {
     // Check payment configuration (city, street & zipcode)
     /** @var \Drupal\payment\Entity\PaymentInterface $payment */
     $payment = entity_load('payment', 1);
-    $payment_configuration = $payment->getPaymentMethod()->getConfiguration();
+    $payment_method = $payment->getPaymentMethod();
+    if(!$payment_method) {
+      throw new \Exception('No payment method');
+    }
+    $payment_configuration = $payment_method->getConfiguration();
     $this->assertNoText('Failed');
     $this->assertTrue($payment_configuration['uppCustomerCity'], 'city');
     $this->assertTrue($payment_configuration['uppCustomerStreet'], 'street');
