@@ -109,46 +109,33 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
     /** @var \Drupal\currency\Entity\CurrencyInterface $currency */
     $currency = Currency::load($payment->getCurrencyCode());
 
-    $sign = NULL;
-
-    switch ($this->pluginDefinition['security']['security_level']) {
-      case 1:
-        $sign = $this->pluginDefinition['security']['merchant_control_constant'];
-
-        break;
-
-      case 2:
-        $sign = hash_hmac(
-          'md5',
-          $this->pluginDefinition['merchant_id'] . intval($payment->getamount() * $currency->getSubunits()) . $payment->getCurrencyCode() . $payment->id(),
-          pack("H*", $this->pluginDefinition['security']['hmac_key'])
-        );
-
-        break;
-    }
-
-    $paymentArray = array(
+    $payment_data = array(
       'merchantId' => $this->pluginDefinition['merchant_id'],
       'amount' => intval($payment->getamount() * $currency->getSubunits()),
-      // TODO: Check if it works
       'currency' => $payment->getCurrencyCode(),
       'refno' => $payment->id(),
-      'sign' => $sign,
+      'sign' => NULL,
       'successUrl' => url('datatrans/success/' . $payment->id(), array('absolute' => TRUE)),
       'errorUrl' => url('datatrans/error/' . $payment->id(), array('absolute' => TRUE)),
       'cancelUrl' => url('datatrans/cancel/' . $payment->id(), array('absolute' => TRUE)),
       'security_level' => $this->pluginDefinition['security']['security_level'],
       'datatrans_key' => DatatransHelper::generateDatatransKey($payment),
     );
+    // If security level 2 is configured then generate and use a sign.
+    if ($this->pluginDefinition['security']['security_level'] == 2) {
+      // Generates the sign.
+      $payment_data['sign'] = DatatransHelper::generateSign($this->pluginDefinition['security']['hmac_key'], $this->pluginDefinition['merchant_id'], $payment->id(), $payment_data['amount'], $payment_data['currency']);
+    }
 
-    $http_build_query_paymentArray = url($this->pluginDefinition['up_start_url'], array(
+    $redirect_url = url($this->pluginDefinition['up_start_url'], array(
       'absolute' => TRUE,
-      'query' => $paymentArray
+      'query' => $payment_data,
     ));
 
-    $response = new RedirectResponse($http_build_query_paymentArray);
+    $response = new RedirectResponse($redirect_url);
     $listener = function (FilterResponseEvent $event) use ($response) {
       $event->setResponse($response);
+      $event->stopPropagation();
     };
     $this->eventDispatcher->addListener(KernelEvents::RESPONSE, $listener, 999);
 

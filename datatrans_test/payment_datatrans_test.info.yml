@@ -2,7 +2,6 @@ description: Supports Datatrans's automated tests.
 core: 8.x
 dependencies:
   - payment_datatrans
-hidden: true
 name: Payment Datatrans tests
 package: Datatrans
 type: module

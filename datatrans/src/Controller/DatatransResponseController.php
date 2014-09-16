@@ -28,7 +28,8 @@ class DatatransResponseController {
    */
   public function processSuccessResponse(Request $request, PaymentInterface $payment) {
     try {
-      // This needs to be checked to match the payment method settings AND being valid with its keys and data.
+      // This needs to be checked to match the payment method settings
+      // ND being valid with its keys and data.
       $post_data = $request->request->all();
 
       // Check if payment is pending.
@@ -41,7 +42,8 @@ class DatatransResponseController {
         throw new \Exception($this->mapErrorCode($post_data['errorCode']));
       }
 
-      // This is the internal guaranteed configuration that is to be considered authoritative.
+      // This is the internal guaranteed configuration that is to be considered
+      // authoritative.
       $plugin_definition = $payment->getPaymentMethod()->getPluginDefinition();
 
       // Check for invalid security level.
@@ -52,10 +54,11 @@ class DatatransResponseController {
       // If security level 2 is configured then generate and use a sign.
       if ($plugin_definition['security']['security_level'] == 2) {
         // Generates the sign.
-        $sign = $this->generateSign($plugin_definition, $payment, $post_data);
+
+        $sign2 = $this->generateSign2($plugin_definition, $post_data);
 
         // Check for correct sign.
-        if ($sign != $post_data['sign'] || empty($sign) || empty($post_data['sign'])) {
+        if (empty($post_data['sign2']) || $sign2 != $post_data['sign2']) {
           throw new \Exception('Invalid sign.');
         }
       }
@@ -71,9 +74,10 @@ class DatatransResponseController {
       }
 
       throw new \Exception('Datatrans communication failure. Invalid data received from Datatrans.');
-    } catch (\Exception $e) {
-      watchdog('datatrans', 'Processing failed with exception @e.', array('@e' => $e->getMessage())); // deprecated
-      drupal_set_message(t('Payment processing failed.'));
+    }
+    catch (\Exception $e) {
+      watchdog('datatrans', 'Processing failed with exception @e.', array('@e' => $e->getMessage()), WATCHDOG_ERROR);
+      drupal_set_message(t('Payment processing failed.'), 'error');
       $this->savePayment($payment);
     }
   }
@@ -109,30 +113,26 @@ class DatatransResponseController {
   }
 
   /**
-   * Generates the server side sign to compare with the datatrans post data.
+   * Generates the sign2 to compare with the datatrans post data.
    *
-   * @param $plugin_definition
-   *  Plugin Definition.
-   * @param PaymentInterface $payment
-   *  Payment Interface
-   * @param $post_data
-   *  Datatrans Post Data.
+   * @param array $plugin_definition
+   *   Plugin Definition.
+   * @param array $post_data
+   *   Datatrans Post Data.
    *
    * @return string
+   *   The generated sign.
    * @throws \Exception
    */
-  public function generateSign($plugin_definition, PaymentInterface $payment, $post_data) {
+  public function generateSign2($plugin_definition, $post_data) {
     if ($plugin_definition['security']['hmac_key'] || $plugin_definition['security']['hmac_key_2']) {
       if ($plugin_definition['security']['use_hmac_2']) {
-        $key = pack("H*", $plugin_definition['security']['hmac_key_2']);
+        $key = $plugin_definition['security']['hmac_key_2'];
       }
       else {
-        $key = pack("H*", $plugin_definition['security']['hmac_key']);
+        $key = $plugin_definition['security']['hmac_key'];
       }
-
-      $hmac_data = $plugin_definition['merchant_id'] . $post_data['amount'] . $post_data['currency'] . $payment->id();
-
-      return hash_hmac('md5', $hmac_data, $key);
+      return DatatransHelper::generateSign($key, $plugin_definition['merchant_id'], $post_data['uppTransactionId'], $post_data['amount'], $post_data['currency']);
     }
 
     throw new \Exception('Problem generating sign.');

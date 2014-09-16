@@ -2,8 +2,17 @@ id: payment_datatrans
 label: 'Datatrans'
 ownerId: 1
 pluginConfiguration:
-  message_text: 'Datatrans'
+  message_text: Datatrans
   message_text_format: plain_text
   status: payment_pending
+  merchant_id: '1000011011'
+  up_start_url: 'https://payment.datatrans.biz/upp/jsp/upStart.jsp'
+  req_type: CAA
+  security:
+    security_level: '2'
+    merchant_control_constant: ''
+    hmac_key: 12345
+    hmac_key_2: ''
+    use_hmac_2: 0
 pluginId: payment_datatrans
 status: true

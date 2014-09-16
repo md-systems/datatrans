@@ -9,13 +9,15 @@ namespace Drupal\payment_datatrans_test;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\payment_datatrans\DatatransHelper;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Implements an example form.
  */
 class DatatransForm extends FormBase {
+
   /**
-   * {@inheritdoc}.
+   * {@inheritdoc}
    */
   public function getFormId() {
     return 'datatrans_form';
@@ -23,9 +25,10 @@ class DatatransForm extends FormBase {
   /**
    * {@inheritdoc}.
    */
-  public function buildForm(array $form, FormStateInterface $form_state) {
+  public function buildForm(array $form, FormStateInterface $form_state, Request $request = NULL) {
     $generator = \Drupal::urlGenerator();
-    foreach($_GET as $key => $value) {
+
+    foreach ($request->query->all() as $key => $value) {
       drupal_set_message($key . $value);
     }
 
@@ -35,8 +38,8 @@ class DatatransForm extends FormBase {
     $form_elements = array (
       'security_level' => '2',
       'amount' => '24600',
+      'uppTransactionId' => rand(10000, 100000),
       'uppCustomerFirstName' => 'firstname',
-      'sign' => \Drupal::state()->get('datatrans.sign') ?: '309dd30ad0cb07770d3a1ffda64585a9',
       'uppCustomerCity' => 'city',
       'uppCustomerZipCode' => 'CHE',
       'uppCustomerDetails' => 'yes',
@@ -46,16 +49,22 @@ class DatatransForm extends FormBase {
       'datatrans_key' => DatatransHelper::generateDatatransKey($payment),
     );
 
-    foreach($form_elements as $key => $value) {
+    // @todo: allow to control the hmac to test hmac2.
+    $generated_sign = DatatransHelper::generateSign('6543123456789', $request->query->get('merchantId'), $form_elements['uppTransactionId'], $request->query->get('amount'), $request->query->get('currency'));
+    drupal_set_message($generated_sign);
+    $form_elements['sign2'] = \Drupal::state()->get('datatrans.sign') ?: $generated_sign;
+
+    foreach ($form_elements as $key => $value) {
       $form[$key] = array(
         '#type' => 'hidden',
         '#value' => $value,
       );
     }
 
+    // Don't generate the route, use the submitted url.
     $response_url = \Drupal::state()->get('datatrans.return_url') ?: 'payment_datatrans.response_success';
 
-    $form['#action'] = $generator->generateFromRoute($response_url, array('payment' => 1));
+    $form['#action'] = $generator->generateFromRoute($response_url, array('payment' => $request->query->get('refno')));
     $form['actions']['#type'] = 'actions';
     $form['actions']['submit'] = array(
       '#type' => 'submit',
@@ -64,12 +73,14 @@ class DatatransForm extends FormBase {
     );
     return $form;
   }
+
   /**
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
     drupal_set_message("Validate Form");
   }
+
   /**
    * {@inheritdoc}
    */

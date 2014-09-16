@@ -29,4 +29,25 @@ class DatatransHelper {
       ->getPluginId() . Settings::getHashSalt() . \Drupal::service('private_key')
       ->get());
   }
+
+  /**
+   * Generates the server side sign to compare with the datatrans post data.
+   *
+   * @param array $plugin_definition
+   *  Plugin Definition.
+   * @param PaymentInterface $payment
+   *  Payment Interface
+   * @param array $data
+   *  Datatrans Post Data.
+   *
+   * @return string
+   * @throws \Exception
+   */
+  public static function generateSign($hmac_key, $merchant_id, $identifier, $amount, $currency) {
+    $key = pack('H*', $hmac_key);
+
+    $hmac_data = $merchant_id . $amount . $currency . pack('H*', $hmac_key);
+
+    return hash_hmac('md5', $hmac_data, $key);
+  }
 }
