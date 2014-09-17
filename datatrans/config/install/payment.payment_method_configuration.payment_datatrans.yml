@@ -9,7 +9,7 @@ pluginConfiguration:
   up_start_url: 'https://payment.datatrans.biz/upp/jsp/upStart.jsp'
   req_type: CAA
   security:
-    security_level: '2'
+    security_level: '0'
     merchant_control_constant: ''
     hmac_key: 12345
     hmac_key_2: ''

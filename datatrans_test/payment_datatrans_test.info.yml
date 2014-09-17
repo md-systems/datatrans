@@ -4,4 +4,5 @@ dependencies:
   - payment_datatrans
 name: Payment Datatrans tests
 package: Datatrans
+hidden: true
 type: module
