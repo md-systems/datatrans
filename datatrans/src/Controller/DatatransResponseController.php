@@ -8,6 +8,7 @@ namespace Drupal\payment_datatrans\Controller;
 
 use Drupal\payment\Entity\PaymentInterface;
 use Drupal\payment_datatrans\DatatransHelper;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -70,15 +71,16 @@ class DatatransResponseController {
 
         // Save the successful payment.
         $this->savePayment($payment, 'payment_success');
-        return;
       }
-
-      throw new \Exception('Datatrans communication failure. Invalid data received from Datatrans.');
+      else {
+        throw new \Exception('Datatrans communication failure. Invalid data received from Datatrans.');
+      }
     }
     catch (\Exception $e) {
       watchdog('datatrans', 'Processing failed with exception @e.', array('@e' => $e->getMessage()), WATCHDOG_ERROR);
       drupal_set_message(t('Payment processing failed.'), 'error');
       $this->savePayment($payment);
+
     }
   }
 
@@ -94,7 +96,7 @@ class DatatransResponseController {
 
     $message = 'Datatrans communication failure. Invalid data received from Datatrans.';
     watchdog('datatrans', 'Processing failed with exception @e.', array('@e' => $message)); // deprecated
-    drupal_set_message(t('Payment processing failed.'));
+    drupal_set_message(t('Payment processing failed.'), 'error');
   }
 
   /**
@@ -106,10 +108,7 @@ class DatatransResponseController {
    */
   public function processCancelResponse(PaymentInterface $payment) {
     $this->savePayment($payment, 'payment_cancelled');
-
-    $message = 'Payment has been cancelled.';
-    watchdog('datatrans', 'Processing failed with exception @e.', array('@e' => $message)); // deprecated
-    drupal_set_message(t('Payment processing failed.'));
+    drupal_set_message(t('Payment cancelled.'), 'error');
   }
 
   /**

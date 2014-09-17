@@ -8,6 +8,7 @@ namespace Drupal\payment_datatrans_test;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\payment\Entity\Payment;
 use Drupal\payment_datatrans\DatatransHelper;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -32,25 +33,25 @@ class DatatransForm extends FormBase {
       drupal_set_message($key . $value);
     }
 
-    /** @var \Drupal\payment\Entity\PaymentInterface $payment */
-    $payment = entity_load('payment', 1);
+    $payment = Payment::load($request->query->get('refno'));
+    $plugin_definition = $payment->getPaymentMethod()->getPluginDefinition();
 
-    $form_elements = array (
-      'security_level' => '2',
-      'amount' => '24600',
+    $form_elements = array(
+      'security_level' => $request->query->get('security_level'),
+      'refno' => $payment->id(),
+      'amount' => $request->query->get('amount'),
       'uppTransactionId' => rand(10000, 100000),
       'uppCustomerFirstName' => 'firstname',
       'uppCustomerCity' => 'city',
       'uppCustomerZipCode' => 'CHE',
       'uppCustomerDetails' => 'yes',
       'uppCustomerStreet' => 'street',
-      'currency' => 'CHF',
+      'currency' => $request->query->get('currency'),
       'status' => 'success',
-      'datatrans_key' => DatatransHelper::generateDatatransKey($payment),
+      'datatrans_key' => $request->query->get('datatrans_key'),
     );
 
-    // @todo: allow to control the hmac to test hmac2.
-    $generated_sign = DatatransHelper::generateSign('6543123456789', $request->query->get('merchantId'), $form_elements['uppTransactionId'], $request->query->get('amount'), $request->query->get('currency'));
+    $generated_sign = DatatransHelper::generateSign($plugin_definition['security']['hmac_key'], $request->query->get('merchantId'), $form_elements['uppTransactionId'], $request->query->get('amount'), $request->query->get('currency'));
     drupal_set_message($generated_sign);
     $form_elements['sign2'] = \Drupal::state()->get('datatrans.sign') ?: $generated_sign;
 
@@ -62,9 +63,10 @@ class DatatransForm extends FormBase {
     }
 
     // Don't generate the route, use the submitted url.
-    $response_url = \Drupal::state()->get('datatrans.return_url') ?: 'payment_datatrans.response_success';
+    $response_url_key = \Drupal::state()->get('datatrans.return_url_key') ?: 'success';
+    $response_url = $request->query->get($response_url_key . 'Url');
 
-    $form['#action'] = $generator->generateFromRoute($response_url, array('payment' => $request->query->get('refno')));
+    $form['#action'] = $response_url;
     $form['actions']['#type'] = 'actions';
     $form['actions']['submit'] = array(
       '#type' => 'submit',

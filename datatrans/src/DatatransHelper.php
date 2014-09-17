@@ -44,10 +44,7 @@ class DatatransHelper {
    * @throws \Exception
    */
   public static function generateSign($hmac_key, $merchant_id, $identifier, $amount, $currency) {
-    $key = pack('H*', $hmac_key);
-
-    $hmac_data = $merchant_id . $amount . $currency . pack('H*', $hmac_key);
-
-    return hash_hmac('md5', $hmac_data, $key);
+    $hmac_data = $merchant_id . $amount . $currency . $identifier;
+    return hash_hmac('md5', $hmac_data, pack('H*', $hmac_key));
   }
 }
