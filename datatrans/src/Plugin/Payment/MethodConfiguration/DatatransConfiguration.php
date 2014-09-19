@@ -436,7 +436,7 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
    * Implements form validate callback for self::formElements().
    */
   public function formElementsValidate(array $element, FormStateInterface $form_state, array $form) {
-    $values = NestedArray::getValue($form_state['values'], $element['#parents']);
+    $values = NestedArray::getValue($form_state->getValues(), $element['#parents']);
 
     $this->setMerchantId($values['merchant_id'])
       ->setUpStartUrl($values['up_start_url'])
