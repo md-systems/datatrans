@@ -10,6 +10,7 @@ namespace Drupal\payment_datatrans\Tests;
 use Drupal\field\Entity\FieldInstanceConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\NodeTypeInterface;
+use Drupal\payment_datatrans\DatatransHelper;
 use Drupal\simpletest\WebTestBase;
 
 /**
@@ -19,7 +20,15 @@ use Drupal\simpletest\WebTestBase;
  */
 class DatatransPaymentTest extends WebTestBase {
 
-  public static $modules = array('payment_datatrans', 'payment', 'payment_form', 'payment_datatrans_test', 'node', 'field_ui', 'config');
+  public static $modules = array(
+    'payment_datatrans',
+    'payment',
+    'payment_form',
+    'payment_datatrans_test',
+    'node',
+    'field_ui',
+    'config'
+  );
 
   /**
    * A user with permission to create and edit books and to administer blocks.
@@ -47,9 +56,12 @@ class DatatransPaymentTest extends WebTestBase {
     $this->field_name = strtolower($this->randomMachineName());
 
     // Create article content type
-    $node_type = $this->drupalCreateContentType(array('type' => 'article', 'name' => 'Article'));
+    $node_type = $this->drupalCreateContentType(array(
+        'type' => 'article',
+        'name' => 'Article'
+      ));
 
-    $this->node_add_payment_form_field($node_type);
+    $this->addPaymentFormField($node_type);
 
     // Create article node
     $title = $this->randomString();
@@ -72,9 +84,14 @@ class DatatransPaymentTest extends WebTestBase {
     ));
 
     // Create user with correct permission.
-    $this->admin_user = $this->drupalCreateUser(array('payment.payment_method_configuration.view.any',
-      'payment.payment_method_configuration.update.any', 'access content', 'access administration pages',
-      'access user profiles', 'payment.payment.view.any'));
+    $this->admin_user = $this->drupalCreateUser(array(
+      'payment.payment_method_configuration.view.any',
+      'payment.payment_method_configuration.update.any',
+      'access content',
+      'access administration pages',
+      'access user profiles',
+      'payment.payment.view.any'
+    ));
     $this->drupalLogin($this->admin_user);
   }
 
@@ -136,7 +153,7 @@ class DatatransPaymentTest extends WebTestBase {
     /** @var \Drupal\payment\Entity\PaymentInterface $payment */
     $payment = entity_load('payment', 1);
     $payment_method = $payment->getPaymentMethod();
-    if(!$payment_method) {
+    if (!$payment_method) {
       throw new \Exception('No payment method');
     }
     $payment_configuration = $payment_method->getConfiguration();
@@ -155,9 +172,9 @@ class DatatransPaymentTest extends WebTestBase {
   }
 
   /**
- * Tests failing Datatrans payment.
- * The test fails by providing an incorrect hmac key.
- */
+   * Tests failing Datatrans payment.
+   * The test fails by providing an incorrect hmac key.
+   */
   function testDatatransFailedPayment() {
     // Modifies the datatrans configuration for testing purposes.
     $generator = \Drupal::urlGenerator();
@@ -168,13 +185,14 @@ class DatatransPaymentTest extends WebTestBase {
       'plugin_form[req_type]' => 'CAA',
       'plugin_form[security][security_level]' => '2',
       'plugin_form[security][merchant_control_constant]' => '',
-      'plugin_form[security][hmac_key]' => '1234', // For failed test we give a wrong hmac_key
+      'plugin_form[security][hmac_key]' => '1234',
+      // For failed test we give a wrong hmac_key
       'plugin_form[security][hmac_key_2]' => '',
     );
     $this->drupalPostForm('admin/config/services/payment/method/configuration/payment_datatrans', $datatrans_configuration, t('Save'));
 
     // Create datatrans payment
-    \Drupal::state()->set('datatrans.return_url', 'payment_datatrans.response_error');
+    \Drupal::state()->set('datatrans.return_url_key', 'error');
     $this->drupalPostForm('node/' . $this->node->id(), array(), t('Pay'));
 
     // Check for incorrect sign.
@@ -198,7 +216,7 @@ class DatatransPaymentTest extends WebTestBase {
    * Tests failing Datatrans payment.
    * The test fails by providing an incorrect hmac key.
    */
-  function testDatatransWrongSignPayment() {
+  function testDatatransTestSignPayment() {
     // Modifies the datatrans configuration for testing purposes.
     $generator = \Drupal::urlGenerator();
     $datatrans_configuration = array(
@@ -208,19 +226,22 @@ class DatatransPaymentTest extends WebTestBase {
       'plugin_form[req_type]' => 'CAA',
       'plugin_form[security][security_level]' => '2',
       'plugin_form[security][merchant_control_constant]' => '',
-      'plugin_form[security][hmac_key]' => '1234', // For failed test we give a wrong hmac_key
+      'plugin_form[security][hmac_key]' => '1234',
+      // For failed test we give a wrong hmac_key
       'plugin_form[security][hmac_key_2]' => '',
     );
     $this->drupalPostForm('admin/config/services/payment/method/configuration/payment_datatrans', $datatrans_configuration, t('Save'));
 
     // Create datatrans payment
-    \Drupal::state()->set('datatrans.sign', 'wrongsign');
+    \Drupal::state()->set('datatrans.return_url_key', 'error');
+    \Drupal::state()->set('datatrans.identifier', rand(10, 100));
+
     $this->drupalPostForm('node/' . $this->node->id(), array(), t('Pay'));
 
-    // Check for incorrect sign.
-    $this->assertNoText('sign309dd30ad0cb07770d3a1ffda64585a9');
-
-    //$this->assertText('Invalid sign.'); //@TODO: Fix drupal_set_message, it is not displaying.
+    // Check for correctly generated sign.
+    $generated_sign = $this->generateSign($datatrans_configuration['plugin_form[security][hmac_key]'], $datatrans_configuration['plugin_form[merchant_id]'],
+      \Drupal::state()->get('datatrans.identifier'), '24600', 'CHF');
+    $this->assertText($generated_sign);
 
     // Finish and save payment
     $this->drupalPostForm(NULL, array(), t('Submit'));
@@ -249,14 +270,15 @@ class DatatransPaymentTest extends WebTestBase {
       'plugin_form[req_type]' => 'CAA',
       'plugin_form[security][security_level]' => '2',
       'plugin_form[security][merchant_control_constant]' => '',
-      'plugin_form[security][hmac_key]' => '1234', // For failed test we give a wrong hmac_key
+      'plugin_form[security][hmac_key]' => '1234',
+      // For failed test we give a wrong hmac_key
       'plugin_form[security][hmac_key_2]' => '',
     );
     $this->drupalPostForm('admin/config/services/payment/method/configuration/payment_datatrans', $datatrans_configuration, t('Save'));
 
     // Create datatrans payment
     // form_build_id form_token
-    \Drupal::state()->set('datatrans.return_url', 'payment_datatrans.response_cancel');
+    \Drupal::state()->set('datatrans.return_url_key', 'cancel');
     $this->drupalPostForm('node/' . $this->node->id(), array(), t('Pay'));
 
     $this->drupalPostForm(NULL, array(), t('Submit'));
@@ -311,12 +333,25 @@ class DatatransPaymentTest extends WebTestBase {
    * @return string
    *  Returns the sign
    */
-  function generateSign($merchant_id, $calculated_amount, $currency_code, $payment_id, $hmac_key) {
-    return hash_hmac(
-      'md5',
-      $merchant_id . $calculated_amount . $currency_code . $payment_id,
-      pack("H*", $hmac_key)
-    );
+
+  /**
+   * Generates the sign
+   *
+   * @param $hmac_key
+   *  hmac key
+   * @param $merchant_id
+   *  Merchant ID
+   * @param $identifier
+   * @param $amount
+   *  The order amount
+   * @param $currency
+   *  Currency Code
+   * @return string
+   *  Returns the sign
+   */
+  function generateSign($hmac_key, $merchant_id, $identifier, $amount, $currency) {
+    $hmac_data = $merchant_id . $amount . $currency . $identifier;
+    return hash_hmac('md5', $hmac_data, pack('H*', $hmac_key));
   }
 
   /**
@@ -330,35 +365,29 @@ class DatatransPaymentTest extends WebTestBase {
    *
    * @return \Drupal\Core\Entity\EntityInterface|static
    */
-  function node_add_payment_form_field(NodeTypeInterface $type, $label = 'Payment Label') {
-    // Add or remove the body field, as needed.
-    $field_storage = FieldStorageConfig::loadByName('node', $this->field_name);
-    $instance = FieldInstanceConfig::loadByName('node', $type->id(), $this->field_name);
-    if (empty($field_storage)) {
-      $field_storage = entity_create('field_storage_config', array(
-        'name' => $this->field_name,
-        'entity_type' => 'node',
-        'type' => 'payment_form',
-      ));
-      $field_storage->save();
-    }
-    if (empty($instance)) {
-      $instance = entity_create('field_instance_config', array(
-        'field_storage' => $field_storage,
-        'bundle' => $type->id(),
-        'label' => $label,
-        'settings' => array('currency_code' => 'CHF'),
-      ));
-      $instance->save();
+  function addPaymentFormField(NodeTypeInterface $type, $label = 'Payment Label') {
+    $field_storage = entity_create('field_storage_config', array(
+      'name' => $this->field_name,
+      'entity_type' => 'node',
+      'type' => 'payment_form',
+    ));
+    $field_storage->save();
 
-      // Assign display settings for the 'default' and 'teaser' view modes.
-      entity_get_display('node', $type->type, 'default')
-        ->setComponent($this->field_name, array(
-          'label' => 'hidden',
-          'type' => 'text_default',
-        ))
-        ->save();
-    }
+    $instance = entity_create('field_config', array(
+      'field_storage' => $field_storage,
+      'bundle' => $type->id(),
+      'label' => $label,
+      'settings' => array('currency_code' => 'CHF'),
+    ));
+    $instance->save();
+
+    // Assign display settings for the 'default' and 'teaser' view modes.
+    entity_get_display('node', $type->type, 'default')
+      ->setComponent($this->field_name, array(
+        'label' => 'hidden',
+        'type' => 'text_default',
+      ))
+      ->save();
 
     return $instance;
   }

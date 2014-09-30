@@ -27,8 +27,6 @@ class DatatransForm extends FormBase {
    * {@inheritdoc}.
    */
   public function buildForm(array $form, FormStateInterface $form_state, Request $request = NULL) {
-    $generator = \Drupal::urlGenerator();
-
     foreach ($request->query->all() as $key => $value) {
       drupal_set_message($key . $value);
     }
@@ -40,7 +38,7 @@ class DatatransForm extends FormBase {
       'security_level' => $request->query->get('security_level'),
       'refno' => $payment->id(),
       'amount' => $request->query->get('amount'),
-      'uppTransactionId' => rand(10000, 100000),
+      'uppTransactionId' => \Drupal::state()->get('datatrans.identifier') ?: rand(10000, 100000),
       'uppCustomerFirstName' => 'firstname',
       'uppCustomerCity' => 'city',
       'uppCustomerZipCode' => 'CHE',

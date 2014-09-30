@@ -105,6 +105,7 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
    */
   protected function doExecutePayment() {
     $payment = $this->getPayment();
+    $generator = \Drupal::urlGenerator();
 
     /** @var \Drupal\currency\Entity\CurrencyInterface $currency */
     $currency = Currency::load($payment->getCurrencyCode());
@@ -115,9 +116,9 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
       'currency' => $payment->getCurrencyCode(),
       'refno' => $payment->id(),
       'sign' => NULL,
-      'successUrl' => url('datatrans/success/' . $payment->id(), array('absolute' => TRUE)),
-      'errorUrl' => url('datatrans/error/' . $payment->id(), array('absolute' => TRUE)),
-      'cancelUrl' => url('datatrans/cancel/' . $payment->id(), array('absolute' => TRUE)),
+      'successUrl' => $generator->generateFromRoute('payment_datatrans.response_success', array('payment' => $payment->id()), array('absolute' => TRUE)),
+      'errorUrl' => $generator->generateFromRoute('payment_datatrans.response_error', array('payment' => $payment->id()), array('absolute' => TRUE)),
+      'cancelUrl' => $generator->generateFromRoute('payment_datatrans.response_cancel', array('payment' => $payment->id()), array('absolute' => TRUE)),
       'security_level' => $this->pluginDefinition['security']['security_level'],
       'datatrans_key' => DatatransHelper::generateDatatransKey($payment),
     );
