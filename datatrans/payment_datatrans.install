@@ -15,14 +15,18 @@ function payment_datatrans_requirements($phase) {
 
   // Check the server's ability to indicate upload progress.
   if ($phase == 'runtime') {
-    $datatrans_payment_method_configuration = entity_load('payment_method_configuration', 'payment_datatrans')->getPluginConfiguration();
+    $datatrans_payment_method_configuration = entity_load('payment_method_configuration', 'payment_datatrans');
+    if (!$datatrans_payment_method_configuration) {
+      return $requirements;
+    }
+    $plugin_configuration = $datatrans_payment_method_configuration->getPluginConfiguration();
 
-    if (empty($datatrans_payment_method_configuration['security']) || $datatrans_payment_method_configuration['security']['security_level'] != 2 || empty($datatrans_payment_method_configuration['security']['hmac_key'])) {
-      if (empty($datatrans_payment_method_configuration['security']['hmac_key'])) {
+    if (empty($plugin_configuration['security']) || $plugin_configuration['security']['security_level'] != 2 || empty($plugin_configuration['security']['hmac_key'])) {
+      if (empty($plugin_configuration['security']['hmac_key'])) {
         $value = t('No HMAC key defined');
       }
 
-      if (empty($datatrans_payment_method_configuration['security']) || $datatrans_payment_method_configuration['security']['security_level'] != 2) {
+      if (empty($plugin_configuration['security']) || $plugin_configuration['security']['security_level'] != 2) {
         $value = t('Insecure security level');
       }
 
@@ -33,17 +37,15 @@ function payment_datatrans_requirements($phase) {
       $severity = REQUIREMENT_OK;
     }
 
-    $requirements = array();
-    if ($phase === 'runtime') {
-      $description = t('You should not work with anything else than security level 2 on a productive system. Without the HMAC key there is no way to check whether the data really comes from Datatrans.');
+    $edit_link = $datatrans_payment_method_configuration->link(t('Edit Configuration'));
+    $description = t('You should not work with anything else than security level 2 on a productive system. Without the HMAC key there is no way to check whether the data really comes from Datatrans. !edit_link', array('!edit_link' => $edit_link));
 
-      $requirements['payment_datatrans'] = array(
-        'title' => t('Datatrans Security'),
-        'value' => $value,
-        'severity' => $severity,
-        'description' => SafeMarkup::set($description . ' ' . l(t('Edit Datatrans'), 'admin/config/services/payment/method/configuration/payment_datatrans')),
-      );
-    }
+    $requirements['payment_datatrans'] = array(
+      'title' => t('Datatrans Security'),
+      'value' => $value,
+      'severity' => $severity,
+      'description' => $description,
+    );
   }
 
   return $requirements;
