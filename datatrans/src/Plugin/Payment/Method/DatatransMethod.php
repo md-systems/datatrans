@@ -10,6 +10,7 @@ namespace Drupal\payment_datatrans\Plugin\Payment\Method;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Url;
 use Drupal\Core\Utility\Token;
 use Drupal\currency\Entity\Currency;
 use Drupal\payment\Plugin\Payment\Method\PaymentMethodBase;
@@ -128,10 +129,10 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
       $payment_data['sign'] = DatatransHelper::generateSign($this->pluginDefinition['security']['hmac_key'], $this->pluginDefinition['merchant_id'], $payment->id(), $payment_data['amount'], $payment_data['currency']);
     }
 
-    $redirect_url = url($this->pluginDefinition['up_start_url'], array(
+    $redirect_url = Url::fromUri($this->pluginDefinition['up_start_url'], array(
       'absolute' => TRUE,
       'query' => $payment_data,
-    ));
+    ))->toString();
 
     $response = new RedirectResponse($redirect_url);
     $listener = function (FilterResponseEvent $event) use ($response) {
