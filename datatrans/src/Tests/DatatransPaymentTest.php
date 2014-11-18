@@ -367,7 +367,7 @@ class DatatransPaymentTest extends WebTestBase {
    */
   function addPaymentFormField(NodeTypeInterface $type, $label = 'Payment Label') {
     $field_storage = entity_create('field_storage_config', array(
-      'name' => $this->field_name,
+      'field_name' => $this->field_name,
       'entity_type' => 'node',
       'type' => 'payment_form',
     ));
