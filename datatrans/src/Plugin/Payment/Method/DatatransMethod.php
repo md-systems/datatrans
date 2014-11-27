@@ -59,9 +59,9 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
    * @param \Drupal\payment\Plugin\Payment\Status\PaymentStatusManager $payment_status_manager
    *   The payment status manager.
    */
-  public function __construct(array $configuration, $plugin_id, array $plugin_definition, EventDispatcherInterface $event_dispatcher, Token $token, ModuleHandlerInterface $module_handler, PaymentStatusManager $payment_status_manager) {
+  public function __construct(array $configuration, $plugin_id, array $plugin_definition, ModuleHandlerInterface $module_handler, EventDispatcherInterface $event_dispatcher, Token $token, ModuleHandlerInterface $module_handler, PaymentStatusManager $payment_status_manager) {
     $configuration += $this->defaultConfiguration();
-    parent::__construct($configuration, $plugin_id, $plugin_definition, $event_dispatcher, $token, $module_handler);
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $module_handler, $event_dispatcher, $token, $module_handler);
     $this->paymentStatusManager = $payment_status_manager;
 
     $this->pluginDefinition['message_text'] = '';
@@ -76,6 +76,7 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
       $configuration,
       $plugin_id,
       $plugin_definition,
+      $container->get('module_handler'),
       $container->get('event_dispatcher'),
       $container->get('token'),
       $container->get('module_handler'),
