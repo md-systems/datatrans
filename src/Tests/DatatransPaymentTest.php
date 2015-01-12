@@ -14,9 +14,9 @@ use Drupal\node\NodeTypeInterface;
 use Drupal\simpletest\WebTestBase;
 
 /**
- * Token integration.
+ * Tests the datatrans payment method.
  *
- * @group Currency
+ * @group payment_datatrans
  */
 class DatatransPaymentTest extends WebTestBase {
 
@@ -48,6 +48,9 @@ class DatatransPaymentTest extends WebTestBase {
    */
   protected $fieldName;
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp() {
     parent::setUp();
 
