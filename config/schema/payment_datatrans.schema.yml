@@ -1,0 +1,34 @@
+payment.plugin_configuration.payment_method_configuration.payment_datatrans:
+  type: payment.plugin_configuration.payment_method_configuration.payment_base
+  mapping:
+    status:
+      type: string
+      label: Target status
+    merchant_id:
+      type: string
+      label: Merchant ID
+    up_start_url:
+      type: string
+      label: UP Start URL
+    req_type:
+      type: string
+      label: Request type
+    security:
+      type: mapping
+      label: Security
+      mapping:
+        security_level:
+          type: integer
+          label: Security Level (0, 1, 2)
+        merchant_control_constant:
+          type: string
+          label: Merchant Control constant
+        hmac_key:
+          type: string
+          label: HMAC key
+        hmac_key_2:
+          type: string
+          label: HMAC 2 key
+        use_hmac_2:
+          type: boolean
+          label: Use HMAC 2

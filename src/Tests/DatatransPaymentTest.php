@@ -7,10 +7,10 @@
 
 namespace Drupal\payment_datatrans\Tests;
 
-use Drupal\field\Entity\FieldInstanceConfig;
+use Drupal\currency\Entity\Currency;
+use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\NodeTypeInterface;
-use Drupal\payment_datatrans\DatatransHelper;
 use Drupal\simpletest\WebTestBase;
 
 /**
@@ -35,8 +35,7 @@ class DatatransPaymentTest extends WebTestBase {
    *
    * @var object
    */
-  protected $admin_user;
-
+  protected $adminUser;
 
   /**
    * Generic node used for testing.
@@ -45,21 +44,24 @@ class DatatransPaymentTest extends WebTestBase {
 
 
   /**
-   * @var $field_name
+   * @var $fieldName
    */
-  protected $field_name;
+  protected $fieldName;
 
   protected function setUp() {
     parent::setUp();
 
     // Create a field name
-    $this->field_name = strtolower($this->randomMachineName());
+    $this->fieldName = strtolower($this->randomMachineName());
 
     // Create article content type
     $node_type = $this->drupalCreateContentType(array(
-        'type' => 'article',
-        'name' => 'Article'
-      ));
+      'type' => 'article',
+      'name' => 'Article'
+    ));
+
+    $config_importer = \Drupal::service('currency.config_importer');
+    $config_importer->importCurrency('CHF');
 
     $this->addPaymentFormField($node_type);
 
@@ -69,14 +71,14 @@ class DatatransPaymentTest extends WebTestBase {
     // Create node with payment plugin configuration
     $this->node = $this->drupalCreateNode(array(
       'type' => 'article',
-      $this->field_name => array(
+      $this->fieldName => array(
         'plugin_configuration' => array(
           'amount' => '123',
           'currency_code' => 'CHF',
           'name' => 'payment_basic',
           'payment_id' => NULL,
           'quantity' => '2',
-          'description' => 'pay me man',
+          'description' => 'Payment description',
         ),
         'plugin_id' => 'payment_basic',
       ),
@@ -84,7 +86,7 @@ class DatatransPaymentTest extends WebTestBase {
     ));
 
     // Create user with correct permission.
-    $this->admin_user = $this->drupalCreateUser(array(
+    $this->adminUser = $this->drupalCreateUser(array(
       'payment.payment_method_configuration.view.any',
       'payment.payment_method_configuration.update.any',
       'access content',
@@ -92,7 +94,7 @@ class DatatransPaymentTest extends WebTestBase {
       'access user profiles',
       'payment.payment.view.any'
     ));
-    $this->drupalLogin($this->admin_user);
+    $this->drupalLogin($this->adminUser);
   }
 
   /**
@@ -117,7 +119,7 @@ class DatatransPaymentTest extends WebTestBase {
     $this->drupalPostForm('node/' . $this->node->id(), array(), t('Pay'));
 
     // Retrieve plugin configuration of created node
-    $plugin_configuration = $this->node->{$this->field_name}->plugin_configuration;
+    $plugin_configuration = $this->node->{$this->fieldName}->plugin_configuration;
 
     // Array of Datatrans payment method configuration.
     $datatrans_payment_method_configuration = entity_load('payment_method_configuration', 'payment_datatrans')->getPluginConfiguration();
@@ -313,26 +315,9 @@ class DatatransPaymentTest extends WebTestBase {
    */
   function calculateAmount($amount, $quantity, $currency_code) {
     $base_amount = $amount * $quantity;
-    $currency = \Drupal\currency\Entity\Currency::load($currency_code);
+    $currency = Currency::load($currency_code);
     return intval($base_amount * $currency->getSubunits());
   }
-
-  /**
-   * Generates the sign
-   *
-   * @param $merchant_id
-   *  Merchant ID
-   * @param $calculated_amount
-   *  Calculated Amount see: calculateAmount()
-   * @param $currency_code
-   *  Currency Code
-   * @param $payment_id
-   *  Payment ID
-   * @param $hmac_key
-   *  hmac key
-   * @return string
-   *  Returns the sign
-   */
 
   /**
    * Generates the sign
@@ -366,14 +351,14 @@ class DatatransPaymentTest extends WebTestBase {
    * @return \Drupal\Core\Entity\EntityInterface|static
    */
   function addPaymentFormField(NodeTypeInterface $type, $label = 'Payment Label') {
-    $field_storage = entity_create('field_storage_config', array(
-      'field_name' => $this->field_name,
+    $field_storage = FieldStorageConfig::create(array(
+      'field_name' => $this->fieldName,
       'entity_type' => 'node',
       'type' => 'payment_form',
     ));
     $field_storage->save();
 
-    $instance = entity_create('field_config', array(
+    $instance = FieldConfig::create(array(
       'field_storage' => $field_storage,
       'bundle' => $type->id(),
       'label' => $label,
@@ -382,8 +367,8 @@ class DatatransPaymentTest extends WebTestBase {
     $instance->save();
 
     // Assign display settings for the 'default' and 'teaser' view modes.
-    entity_get_display('node', $type->type, 'default')
-      ->setComponent($this->field_name, array(
+    entity_get_display('node', $type->id(), 'default')
+      ->setComponent($this->fieldName, array(
         'label' => 'hidden',
         'type' => 'text_default',
       ))

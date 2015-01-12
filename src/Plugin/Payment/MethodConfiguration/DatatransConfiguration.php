@@ -12,6 +12,7 @@ use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
+use Drupal\Core\Url;
 use Drupal\payment\Plugin\Payment\MethodConfiguration\PaymentMethodConfigurationBase;
 use Drupal\payment\Plugin\Payment\Status\PaymentStatusManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -363,12 +364,14 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
       '#default_value' => $this->getReqType(),
     );
 
+    $url = Url::fromUri('https://pilot.datatrans.biz/showcase/doc/Technical_Implementation_Guide.pdf', ['external' => TRUE]);
     $form['security'] = array(
       '#type' => 'fieldset',
       '#title' => t('Security Settings'),
       '#collapsible' => FALSE,
       '#collapsed' => FALSE,
-      '#description' => t('You should not work with anything else than security level 2 on a productive system. Without the HMAC key there is no way to check whether the data really comes from Datatrans.') . PHP_EOL . t('You can find more details about the security levels in your Datatrans account at UPP ADMINISTRATION -> Security. Or check the technical information in the !link', array('!link' => l('Technical_Implementation_Guide', 'https://pilot.datatrans.biz/showcase/doc/Technical_Implementation_Guide.pdf', array('external' => TRUE)))),
+
+      '#description' => t('You should not work with anything else than security level 2 on a productive system. Without the HMAC key there is no way to check whether the data really comes from Datatrans.') . PHP_EOL . t('You can find more details about the security levels in your Datatrans account at UPP ADMINISTRATION -> Security. Or check the technical information in the !link', array('!link' => \Drupal::l('Technical_Implementation_Guide', $url))),
     );
 
     $form['security']['security_level'] = array(
