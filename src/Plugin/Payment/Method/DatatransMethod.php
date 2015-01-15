@@ -7,19 +7,13 @@
 
 namespace Drupal\payment_datatrans\Plugin\Payment\Method;
 
-use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
-use Drupal\Core\Utility\Token;
 use Drupal\currency\Entity\Currency;
 use Drupal\payment\PaymentExecutionResult;
 use Drupal\payment\Plugin\Payment\Method\PaymentMethodBase;
-use Drupal\payment\Plugin\Payment\Status\PaymentStatusManager;
 use Drupal\payment\Response\Response;
 use Drupal\payment_datatrans\DatatransHelper;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Drupal\Component\Plugin\ConfigurablePluginInterface;
 
 /**
@@ -34,14 +28,14 @@ use Drupal\Component\Plugin\ConfigurablePluginInterface;
 class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPluginInterface, ConfigurablePluginInterface {
 
   /**
-   * @var \Drupal\payment\Response\Response
-   */
-  protected $response;
-
-  /**
+   * Stores a configuration.
+   *
    * @param string $key
-   * @param $value
-   * @return $this|void
+   *   Configuration key.
+   * @param mixed $value
+   *   Configuration value.
+   *
+   * @return $this
    */
   public function setConfigField($key, $value) {
     $this->configuration[$key] = $value;
@@ -50,9 +44,9 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
   }
 
   /**
-   * Performs the actual payment execution.
+   * {@inheritdoc}
    */
-  protected function doExecutePayment() {
+  public function getPaymentExecutionResult() {
     $payment = $this->getPayment();
     $generator = \Drupal::urlGenerator();
 
@@ -79,14 +73,11 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
 
     $payment->save();
 
-    $this->response = new Response(Url::fromUri($this->pluginDefinition['up_start_url'], array(
+    $response = new Response(Url::fromUri($this->pluginDefinition['up_start_url'], array(
       'absolute' => TRUE,
       'query' => $payment_data,
     )));
-  }
-
-  public function getPaymentExecutionResult() {
-    return new PaymentExecutionResult($this->response);
+    return new PaymentExecutionResult($response);
   }
 
   /**
@@ -94,34 +85,6 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
    */
   protected function getSupportedCurrencies() {
     return TRUE;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function doCapturePaymentAccess(AccountInterface $account) {
-    // TODO: Implement doCapturePaymentAccess() method.
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function doCapturePayment() {
-    // TODO: Implement doCapturePayment() method.
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function doRefundPaymentAccess(AccountInterface $account) {
-    // TODO: Implement doRefundPaymentAccess() method.
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function doRefundPayment() {
-    // TODO: Implement doRefundPayment() method.
   }
 
 }
