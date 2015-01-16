@@ -10,7 +10,6 @@ use Drupal\payment\Entity\PaymentInterface;
 use Drupal\payment_datatrans\DatatransHelper;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Class DatatransResponseController
@@ -159,7 +158,7 @@ class DatatransResponseController {
     $payment->setPaymentStatus(\Drupal::service('plugin.manager.payment.status')
       ->createInstance($status));
     $payment->save();
-    return new RedirectResponse($payment->getPaymentType()->getResumeContextResponse()->getRedirectUrl()->toString());
+    return $payment->getPaymentType()->getResumeContextResponse()->getResponse();
   }
 
   /**
