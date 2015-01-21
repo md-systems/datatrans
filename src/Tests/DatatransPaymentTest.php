@@ -170,7 +170,7 @@ class DatatransPaymentTest extends WebTestBase {
     // Check for detailed payment information
     $this->drupalGet('payment/1');
     $this->assertNoText('Failed');
-    $this->assertText('pay me man');
+    $this->assertText('Payment description');
     $this->assertText('CHF 123.00');
     $this->assertText('CHF 246.00');
     $this->assertText('Completed');

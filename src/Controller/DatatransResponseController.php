@@ -26,6 +26,8 @@ class DatatransResponseController {
    *   Request
    * @param PaymentInterface $payment
    *   The Payment entity type.
+   *
+   * @return \Symfony\Component\HttpFoundation\Response
    */
   public function processSuccessResponse(Request $request, PaymentInterface $payment) {
     try {
@@ -70,7 +72,7 @@ class DatatransResponseController {
         $this->setPaymentConfiguration($payment, $post_data);
 
         // Save the successful payment.
-        $this->savePayment($payment, 'payment_success');
+        return $this->savePayment($payment, 'payment_success');
       }
       else {
         throw new \Exception('Datatrans communication failure. Invalid data received from Datatrans.');
@@ -79,8 +81,7 @@ class DatatransResponseController {
     catch (\Exception $e) {
       \Drupal::logger('datatrans')->error('Processing failed with exception @e.', array('@e' => $e->getMessage()));
       drupal_set_message(t('Payment processing failed.'), 'error');
-      $this->savePayment($payment);
-
+      return $this->savePayment($payment);
     }
   }
 
@@ -89,14 +90,17 @@ class DatatransResponseController {
    *
    * @param PaymentInterface $payment
    *  The Payment entity type.
+   *
+   * @return \Symfony\Component\HttpFoundation\Response
+   *
    * @throws \Exception
    */
   public function processErrorResponse(PaymentInterface $payment) {
-    $this->savePayment($payment);
 
     $message = 'Datatrans communication failure. Invalid data received from Datatrans.';
     \Drupal::logger('datatrans')->error('Processing failed with exception @e.', array('@e' => $message));
     drupal_set_message(t('Payment processing failed.'), 'error');
+    return $this->savePayment($payment);
   }
 
   /**
@@ -104,11 +108,14 @@ class DatatransResponseController {
    *
    * @param PaymentInterface $payment
    *  The Payment entity type.
+   *
+   * @return \Symfony\Component\HttpFoundation\Response
+   *
    * @throws \Exception
    */
   public function processCancelResponse(PaymentInterface $payment) {
-    $this->savePayment($payment, 'payment_cancelled');
     drupal_set_message(t('Payment cancelled.'), 'error');
+    return $this->savePayment($payment, 'payment_cancelled');
   }
 
   /**
@@ -140,19 +147,19 @@ class DatatransResponseController {
   /**
    * Saves success/cancelled/failed payment.
    *
-   * @param $payment
-   *  Payment Interface.
+   * @param \Drupal\payment\Entity\PaymentInterface $payment
+   *  Payment entity.
    * @param string $status
-   *  Payment Status
+   *  Payment status to set
+   *
+   * @return \Symfony\Component\HttpFoundation\RedirectResponse
    */
   public function savePayment(PaymentInterface $payment, $status = 'payment_failed') {
     $payment->setPaymentStatus(\Drupal::service('plugin.manager.payment.status')
       ->createInstance($status));
     $payment->save();
-    $payment->getPaymentType()->resumeContext();
+    return $payment->getPaymentType()->getResumeContextResponse()->getResponse();
   }
-
-
 
   /**
    * Sets payments configuration data if present.

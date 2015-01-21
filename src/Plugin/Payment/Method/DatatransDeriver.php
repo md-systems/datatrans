@@ -65,6 +65,8 @@ class DatatransDeriver extends DeriverBase implements ContainerDeriverInterface 
         $this->derivatives[$payment_method->id()] = array(
             //'active' => $payment_method->status(),
             'merchant_id' => $configuration_plugin->getMerchantId(),
+            'message_text' => '',
+            'message_text_format' => '',
             'up_start_url' => $configuration_plugin->getUpStartUrl(),
             'req_type' => $configuration_plugin->getReqType(),
             'security' => array(
