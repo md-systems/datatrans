@@ -2,22 +2,22 @@ Datatrans Plugin for Payment
 ======
 The datatrans plugin provides a payment method using Datatrans for the Drupal payment module.
 
-** Configuration values: **
+**Configuration values:**
 
-- ** Merchant-ID: **                  The Merchant ID as provided in your Merchant account on [pilot.datatrans.biz](https://pilot.datatrans.biz)
+- **Merchant-ID:**                  The Merchant ID as provided in your Merchant account on [pilot.datatrans.biz](https://pilot.datatrans.biz)
 
   *Example:*                          1000000123
 
-- ** Start URL: **                    Sets where to send the payment.
+- **Start URL:**                    Sets where to send the payment.
 
   *Testing:*                          https://pilot.datatrans.biz/upp/jsp/upStart.jsp  
   *Production:*                       https://payment.datatrans.biz/upp/jsp/upStart.jsp  
 
-- ** Request type: **                 Change the request type.
+- **Request type:**                 Change the request type.
 
   *Default:*                          Authorization with immediate settlement
 
-- ** Security Settings: **            The security level to use for transactions.
+- **Security Settings:**            The security level to use for transactions.
 
   *Security Level 0:*                 No additional security, do not use for production.  
   *Security Level 1: (minimum)*       Additional control constants are sent with payment messages.  
@@ -25,7 +25,7 @@ The datatrans plugin provides a payment method using Datatrans for the Drupal pa
 
   Values for the security settings can be found on [pilot.datatrans.biz](https://pilot.datatrans.biz/MenuDispatch.jsp?main=3&sub=3#) by navigating to UPP Administration->Security.
 
-** Important information: **
+**Important information:**
 
    The URL for the service callbacks as defined in the payment_datatrans.routing.yml.
    Make sure they match the UPP Data found on [pilot.datatrans.biz](https://pilot.datatrans.biz/MenuDispatch.jsp?main=3&sub=0) [UPP Administration->UPP Data]
@@ -34,7 +34,7 @@ The datatrans plugin provides a payment method using Datatrans for the Drupal pa
    example.com**/datatrans/error/**  
    example.com**/datatrans/cancel/**  
 
-** Additional Information:**
+**Additional Information:**
 
    Useful links:
 
