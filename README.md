@@ -6,22 +6,22 @@ The datatrans plugin provides a payment method using Datatrans for the Drupal pa
 
 - **Merchant-ID:**                  The Merchant ID as provided in your Merchant account on [pilot.datatrans.biz](https://pilot.datatrans.biz)
 
-  *Example:*                          1000000123
+  *Example:*                        1000000123
 
-- **Start URL:**                    Sets where to send the payment.
+- **Start URL:**                    Set where to send the payment.
 
-  *Testing:*                          https://pilot.datatrans.biz/upp/jsp/upStart.jsp  
-  *Production:*                       https://payment.datatrans.biz/upp/jsp/upStart.jsp  
+  *Testing:*                        https://pilot.datatrans.biz/upp/jsp/upStart.jsp  
+  *Production:*                     https://payment.datatrans.biz/upp/jsp/upStart.jsp  
 
-- **Request type:**                 Change the request type.
+- **Request type:**                 Set the request type.
 
-  *Default:*                          Authorization with immediate settlement
+  *Default:*                        Authorisation with immediate settlement
 
 - **Security Settings:**            The security level to use for transactions.
 
-  *Security Level 0:*                 No additional security, do not use for production.  
-  *Security Level 1: (minimum)*       Additional control constants are sent with payment messages.  
-  *Security Level 2: (recommended)*   Important parameters are digitally signed and sent with payment messages.  
+  *Security Level 0:*               No additional security, do not use for production.  
+  *Security Level 1: (minimum)*     Additional control constants are sent with payment messages.  
+  *Security Level 2: (recommended)* Important parameters are digitally signed and sent with payment messages.  
 
   Values for the security settings can be found on [pilot.datatrans.biz](https://pilot.datatrans.biz/MenuDispatch.jsp?main=3&sub=3#) by navigating to UPP Administration->Security.
 
