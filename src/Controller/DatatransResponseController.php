@@ -31,6 +31,15 @@ class DatatransResponseController {
    */
   public function processSuccessResponse(Request $request, PaymentInterface $payment) {
     try {
+      if (\Drupal::state()->get('datatrans.debug', FALSE)) {
+        if(\Drupal::moduleHandler()->moduleExists('past')) {
+          past_event_save('datatrans', $payment->id(), $request);
+        }
+        else {
+          \Drupal::logger('datatrans')->info(t('Payment response: @response', ['@response' => $request]));
+        }
+        drupal_set_message(t('Payment response: @response', ['@response' => implode(', ', $request->request->all())]));
+      }
       // This needs to be checked to match the payment method settings
       // ND being valid with its keys and data.
       $post_data = $request->request->all();
@@ -88,6 +97,8 @@ class DatatransResponseController {
   /**
    * Page callback for processing error Datatrans response.
    *
+   * @param Request $request
+   *  Request
    * @param PaymentInterface $payment
    *  The Payment entity type.
    *
@@ -95,8 +106,16 @@ class DatatransResponseController {
    *
    * @throws \Exception
    */
-  public function processErrorResponse(PaymentInterface $payment) {
-
+  public function processErrorResponse(Request $request, PaymentInterface $payment) {
+    if (\Drupal::state()->get('datatrans.debug', FALSE)) {
+      if(\Drupal::moduleHandler()->moduleExists('past')) {
+        past_event_save('datatrans', $payment->id(), $request);
+      }
+      else {
+        \Drupal::logger('datatrans')->info(t('Payment response: @response', ['@response' => $request]));
+      }
+      drupal_set_message(t('Payment response: @response', ['@response' => implode(', ', $request->request->all())]));
+    }
     $message = 'Datatrans communication failure. Invalid data received from Datatrans.';
     \Drupal::logger('datatrans')->error('Processing failed with exception @e.', array('@e' => $message));
     drupal_set_message(t('Payment processing failed.'), 'error');
@@ -106,6 +125,8 @@ class DatatransResponseController {
   /**
    * Page callback for processing cancellation Datatrans response.
    *
+   * @param Request $request
+   *  Request
    * @param PaymentInterface $payment
    *  The Payment entity type.
    *
@@ -113,7 +134,16 @@ class DatatransResponseController {
    *
    * @throws \Exception
    */
-  public function processCancelResponse(PaymentInterface $payment) {
+  public function processCancelResponse(Request $request, PaymentInterface $payment) {
+    if (\Drupal::state()->get('datatrans.debug', FALSE)) {
+      if(\Drupal::moduleHandler()->moduleExists('past')) {
+        past_event_save('datatrans', $payment->id(), $request);
+      }
+      else {
+        \Drupal::logger('datatrans')->info(t('Payment response: @response', ['@response' => $request]));
+      }
+      drupal_set_message(t('Payment response: @response', ['@response' => implode(', ', $request->request->all())]));
+    }
     drupal_set_message(t('Payment cancelled.'), 'error');
     return $this->savePayment($payment, 'payment_cancelled');
   }
