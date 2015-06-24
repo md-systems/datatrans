@@ -33,7 +33,7 @@ class DatatransResponseController {
    */
   public function processSuccessResponse(Request $request, PaymentInterface $payment) {
     try {
-      if (\Drupal::config('datatrans')->get('debug')) {
+      if (\Drupal::config('payment.payment_method_configuration.payment_datatrans')->get('pluginConfiguration')['debug']) {
         if (\Drupal::moduleHandler()->moduleExists('past')) {
           past_event_save('datatrans', 'Success response - POST data', $request->request->all());
         }
@@ -108,7 +108,7 @@ class DatatransResponseController {
    *    Returns the redirect response.
    */
   public function processErrorResponse(Request $request, PaymentInterface $payment) {
-    if (\Drupal::config('datatrans')->get('debug')) {
+    if (\Drupal::config('payment.payment_method_configuration.payment_datatrans')->get('pluginConfiguration')['debug']) {
       if (\Drupal::moduleHandler()->moduleExists('past')) {
         past_event_save('datatrans', 'Error response - POST data', $request);
       }
@@ -135,7 +135,7 @@ class DatatransResponseController {
    *    Returns the redirect response.
    */
   public function processCancelResponse(Request $request, PaymentInterface $payment) {
-    if (\Drupal::config('datatrans')->get('debug')) {
+    if (\Drupal::config('payment.payment_method_configuration.payment_datatrans')->get('pluginConfiguration')['debug']) {
       if (\Drupal::moduleHandler()->moduleExists('past')) {
         past_event_save('datatrans', 'Cancel response - POST data', $request);
       }

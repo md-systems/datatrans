@@ -27,7 +27,8 @@ class DatatransPaymentTest extends WebTestBase {
     'payment_datatrans_test',
     'node',
     'field_ui',
-    'config'
+    'config',
+    'dblog',
   );
 
   /**
@@ -95,7 +96,8 @@ class DatatransPaymentTest extends WebTestBase {
       'access content',
       'access administration pages',
       'access user profiles',
-      'payment.payment.view.any'
+      'access site reports',
+      'payment.payment.view.any',
     ));
     $this->drupalLogin($this->adminUser);
   }
@@ -103,7 +105,7 @@ class DatatransPaymentTest extends WebTestBase {
   /**
    * Tests succesfull Datatrans payment.
    */
-  function testDatatransSuccessPayment() {
+  public function testDatatransSuccessPayment() {
     // Modifies the datatrans configuration for testing purposes.
     $generator = \Drupal::urlGenerator();
     $datatrans_configuration = array(
@@ -118,23 +120,33 @@ class DatatransPaymentTest extends WebTestBase {
     );
     $this->drupalPostForm('admin/config/services/payment/method/configuration/payment_datatrans', $datatrans_configuration, t('Save'));
 
-    // Create datatrans payment
+    $this->drupalGet('admin/config/services/payment/method/configuration/payment_datatrans');
+    // Test the debug checkbox.
+    $this->assertNoFieldChecked('edit-plugin-form-debug');
+    $edit = [
+      'plugin_form[debug]' => TRUE,
+    ];
+    $this->drupalPostForm(NULL, $edit, t('Save'));
+    $this->drupalGet('admin/config/services/payment/method/configuration/payment_datatrans');
+    $this->assertFieldChecked('edit-plugin-form-debug');
+
+    // Create datatrans payment.
     $this->drupalPostForm('node/' . $this->node->id(), array(), t('Pay'));
 
-    // Retrieve plugin configuration of created node
+    // Retrieve plugin configuration of created node.
     $plugin_configuration = $this->node->{$this->fieldName}->plugin_configuration;
 
     // Array of Datatrans payment method configuration.
     $datatrans_payment_method_configuration = entity_load('payment_method_configuration', 'payment_datatrans')->getPluginConfiguration();
 
-    // Check for correct Merchant ID
+    // Check for correct Merchant ID.
     $this->assertText('merchantId' . $datatrans_payment_method_configuration['merchant_id']);
 
-    // Check for correct amount
+    // Check for correct amount.
     $calculated_amount = $this->calculateAmount($plugin_configuration['amount'], $plugin_configuration['quantity'], $plugin_configuration['currency_code']);
     $this->assertText('amount' . $calculated_amount);
 
-    // Check for correct success, error and cancel url
+    // Check for correct success, error and cancel url.
     $this->assertText('successUrl' . $generator->generateFromRoute('payment_datatrans.response_success', array('payment' => 1), array('absolute' => TRUE)));
     $this->assertText('errorUrl' . $generator->generateFromRoute('payment_datatrans.response_error', array('payment' => 1), array('absolute' => TRUE)));
     $this->assertText('cancelUrl' . $generator->generateFromRoute('payment_datatrans.response_cancel', array('payment' => 1), array('absolute' => TRUE)));
@@ -142,19 +154,19 @@ class DatatransPaymentTest extends WebTestBase {
     // Check for correct sign with using hmac_key
     $this->assertText('sign' . '309dd30ad0cb07770d3a1ffda64585a9');
 
-    // Finish and save payment
+    // Finish and save payment.
     $this->drupalPostForm(NULL, array(), t('Submit'));
 
-    // Check out the payment overview page
+    // Check out the payment overview page.
     $this->drupalGet('admin/content/payment');
 
-    // Check for correct currency code and payment amount
+    // Check for correct currency code and payment amount.
     $this->assertText('CHF 246.00');
 
-    // Check for correct Payment Method
+    // Check for correct Payment Method.
     $this->assertText('Datatrans');
 
-    // Check payment configuration (city, street & zipcode)
+    // Check payment configuration (city, street & zipcode).
     /** @var \Drupal\payment\Entity\PaymentInterface $payment */
     $payment = entity_load('payment', 1);
     $payment_method = $payment->getPaymentMethod();
@@ -167,20 +179,24 @@ class DatatransPaymentTest extends WebTestBase {
     $this->assertTrue($payment_configuration['uppCustomerStreet'], 'street');
     $this->assertTrue($payment_configuration['uppCustomerZipCode'], 'CHE');
 
-    // Check for detailed payment information
+    // Check for detailed payment information.
     $this->drupalGet('payment/1');
     $this->assertNoText('Failed');
     $this->assertText('Payment description');
     $this->assertText('CHF 123.00');
     $this->assertText('CHF 246.00');
     $this->assertText('Completed');
+
+    $this->drupalGet('/admin/reports/dblog');
+    $this->assertText('Payment success response: POST');
   }
 
   /**
    * Tests failing Datatrans payment.
+   *
    * The test fails by providing an incorrect hmac key.
    */
-  function testDatatransFailedPayment() {
+  public function testDatatransFailedPayment() {
     // Modifies the datatrans configuration for testing purposes.
     $generator = \Drupal::urlGenerator();
     $datatrans_configuration = array(
@@ -193,35 +209,40 @@ class DatatransPaymentTest extends WebTestBase {
       'plugin_form[security][hmac_key]' => '1234',
       // For failed test we give a wrong hmac_key
       'plugin_form[security][hmac_key_2]' => '',
+      'plugin_form[debug]' => TRUE,
     );
     $this->drupalPostForm('admin/config/services/payment/method/configuration/payment_datatrans', $datatrans_configuration, t('Save'));
 
-    // Create datatrans payment
+    // Create datatrans payment.
     \Drupal::state()->set('datatrans.return_url_key', 'error');
     $this->drupalPostForm('node/' . $this->node->id(), array(), t('Pay'));
 
     // Check for incorrect sign.
     $this->assertNoText('sign309dd30ad0cb07770d3a1ffda64585a9');
 
-    // Finish and save payment
+    // Finish and save payment.
     $this->drupalPostForm(NULL, array(), t('Submit'));
 
-    // Check out the payment overview page
+    // Check out the payment overview page.
     $this->drupalGet('admin/content/payment');
     $this->assertText('Failed');
     $this->assertNoText('Success');
 
-    // Check for detailed payment information
+    // Check for detailed payment information.
     $this->drupalGet('payment/1');
     $this->assertText('Failed');
     $this->assertNoText('Success');
+
+    $this->drupalGet('/admin/reports/dblog');
+    $this->assertText('Payment error response: POST');
   }
 
   /**
    * Tests failing Datatrans payment.
+   *
    * The test fails by providing an incorrect hmac key.
    */
-  function testDatatransTestSignPayment() {
+  public function testDatatransTestSignPayment() {
     // Modifies the datatrans configuration for testing purposes.
     $generator = \Drupal::urlGenerator();
     $datatrans_configuration = array(
@@ -234,10 +255,11 @@ class DatatransPaymentTest extends WebTestBase {
       'plugin_form[security][hmac_key]' => '1234',
       // For failed test we give a wrong hmac_key
       'plugin_form[security][hmac_key_2]' => '',
+      'plugin_form[debug]' => TRUE,
     );
     $this->drupalPostForm('admin/config/services/payment/method/configuration/payment_datatrans', $datatrans_configuration, t('Save'));
 
-    // Create datatrans payment
+    // Create datatrans payment.
     \Drupal::state()->set('datatrans.return_url_key', 'error');
     \Drupal::state()->set('datatrans.identifier', rand(10, 100));
 
@@ -248,24 +270,27 @@ class DatatransPaymentTest extends WebTestBase {
       \Drupal::state()->get('datatrans.identifier'), '24600', 'CHF');
     $this->assertText($generated_sign);
 
-    // Finish and save payment
+    // Finish and save payment.
     $this->drupalPostForm(NULL, array(), t('Submit'));
 
-    // Check out the payment overview page
+    // Check out the payment overview page.
     $this->drupalGet('admin/content/payment');
     $this->assertText('Failed');
     $this->assertNoText('Success');
 
-    // Check for detailed payment information
+    // Check for detailed payment information.
     $this->drupalGet('payment/1');
     $this->assertText('Failed');
     $this->assertNoText('Success');
+
+    $this->drupalGet('/admin/reports/dblog');
+    $this->assertText('Payment error response: POST');
   }
 
   /**
    * Tests cancelled Datatrans payment.
    */
-  function testDatatransCancelPayment() {
+  public function testDatatransCancelPayment() {
     // Modifies the datatrans configuration for testing purposes.
     $generator = \Drupal::urlGenerator();
     $datatrans_configuration = array(
@@ -278,6 +303,7 @@ class DatatransPaymentTest extends WebTestBase {
       'plugin_form[security][hmac_key]' => '1234',
       // For failed test we give a wrong hmac_key
       'plugin_form[security][hmac_key_2]' => '',
+      'plugin_form[debug]' => TRUE,
     );
     $this->drupalPostForm('admin/config/services/payment/method/configuration/payment_datatrans', $datatrans_configuration, t('Save'));
 
@@ -291,67 +317,73 @@ class DatatransPaymentTest extends WebTestBase {
     // Check for incorrect sign.
     $this->assertNoText('sign309dd30ad0cb07770d3a1ffda64585a9');
 
-    // Check out the payment overview page
+    // Check out the payment overview page.
     $this->drupalGet('admin/content/payment');
     $this->assertText('Cancelled');
     $this->assertNoText('Failed');
     $this->assertNoText('Success');
 
-    // Check for detailed payment information
+    // Check for detailed payment information.
     $this->drupalGet('payment/1');
     $this->assertText('Cancelled');
     $this->assertNoText('Failed');
     $this->assertNoText('Success');
+
+    $this->drupalGet('/admin/reports/dblog');
+    $this->assertText('Payment cancel response: POST');
   }
 
   /**
-   * Calculates the total amount
+   * Calculates the total amount.
    *
-   * @param $amount
-   *  Base amount
-   * @param $quantity
-   *  Quantity
-   * @param $currency_code
-   *  Currency code
+   * @param int $amount
+   *   Base amount.
+   * @param int $quantity
+   *   Quantity.
+   * @param string $currency_code
+   *   Currency code.
+   *
    * @return int
-   *  Returns the total amount
+   *   Returns the total amount.
    */
-  function calculateAmount($amount, $quantity, $currency_code) {
+  public function calculateAmount($amount, $quantity, $currency_code) {
     $base_amount = $amount * $quantity;
     $currency = Currency::load($currency_code);
     return intval($base_amount * $currency->getSubunits());
   }
 
   /**
-   * Generates the sign
+   * Generates the sign.
    *
-   * @param $hmac_key
-   *  hmac key
-   * @param $merchant_id
-   *  Merchant ID
-   * @param $identifier
-   * @param $amount
-   *  The order amount
-   * @param $currency
-   *  Currency Code
+   * @param string $hmac_key
+   *   Hmac key.
+   * @param string $merchant_id
+   *   Merchant ID.
+   * @param string $identifier
+   *   The identifier.
+   * @param int $amount
+   *   The order amount.
+   * @param string $currency
+   *   Currency Code.
+   *
    * @return string
-   *  Returns the sign
+   *   Returns the sign.
    */
-  function generateSign($hmac_key, $merchant_id, $identifier, $amount, $currency) {
+  public function generateSign($hmac_key, $merchant_id, $identifier, $amount, $currency) {
     $hmac_data = $merchant_id . $amount . $currency . $identifier;
     return hash_hmac('md5', $hmac_data, pack('H*', $hmac_key));
   }
 
   /**
-   * Adds the payment field to the node
+   * Adds the payment field to the node.
    *
    * @param NodeTypeInterface $type
-   *   Node type interface type
-   *
+   *   Node type interface type.
    * @param string $label
-   *   Field label
+   *   Field label.
    *
    * @return \Drupal\Core\Entity\EntityInterface|static
+   *   Returns the payment form field.
    */
   function addPaymentFormField(NodeTypeInterface $type, $label = 'Payment Label') {
     $field_storage = FieldStorageConfig::create(array(

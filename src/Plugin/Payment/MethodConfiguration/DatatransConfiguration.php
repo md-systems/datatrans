@@ -455,7 +455,7 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
       '#title' => 'Log response from Datatrans server',
       '#default_value' => $this->getDebug(),
     );
-
+    \Drupal::config('payment.payment_method_configuration.payment_datatrans')->get('pluginConfiguration')['debug'];
     return $form;
   }
 
