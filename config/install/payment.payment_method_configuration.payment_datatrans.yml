@@ -14,5 +14,6 @@ pluginConfiguration:
     hmac_key: '12345'
     hmac_key_2: ''
     use_hmac_2: FALSE
+  debug: FALSE
 pluginId: payment_datatrans
 status: true
