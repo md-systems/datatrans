@@ -33,7 +33,7 @@ class DatatransResponseController {
    */
   public function processSuccessResponse(Request $request, PaymentInterface $payment) {
     try {
-      if (\Drupal::config('datatrans')->get('debug')) {
+      if (\Drupal::state()->get('datatrans.debug', FALSE)) {
         if (\Drupal::moduleHandler()->moduleExists('past')) {
           past_event_save('datatrans', 'Success response - POST data', $request->request->all());
         }
