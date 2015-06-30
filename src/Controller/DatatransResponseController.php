@@ -35,12 +35,11 @@ class DatatransResponseController {
     try {
       if (\Drupal::config('payment.payment_method_configuration.payment_datatrans')->get('pluginConfiguration')['debug']) {
         if (\Drupal::moduleHandler()->moduleExists('past')) {
-          past_event_save('datatrans', 'Success response - POST data', $request->request->all());
+          past_event_save('datatrans', 'response_success', 'Success response - POST data', ['POST' => $request->request->all(), 'Payment' => $payment]);
         }
         else {
-          \Drupal::logger('datatrans')->info(t('Payment success response: @response', ['@response' => $request]));
+          \Drupal::logger('datatrans')->debug(t('Payment success response: @response', ['@response' => $request->request->all()]));
         }
-        drupal_set_message(t('Payment success response: @response', ['@response' => implode(', ', $request->request->all())]));
       }
       // This needs to be checked to match the payment method settings
       // ND being valid with its keys and data.
@@ -110,10 +109,10 @@ class DatatransResponseController {
   public function processErrorResponse(Request $request, PaymentInterface $payment) {
     if (\Drupal::config('payment.payment_method_configuration.payment_datatrans')->get('pluginConfiguration')['debug']) {
       if (\Drupal::moduleHandler()->moduleExists('past')) {
-        past_event_save('datatrans', 'Error response - POST data', $request);
+        past_event_save('datatrans', 'response_error', 'Error response - POST data', ['POST' => $request->request->all(), 'Payment' => $payment]);
       }
       else {
-        \Drupal::logger('datatrans')->info(t('Payment error response: @response', ['@response' => $request]));
+        \Drupal::logger('datatrans')->info(t('Payment error response: @response', ['@response' => $request->request->all()]));
       }
       drupal_set_message(t('Payment error response: @response', ['@response' => implode(', ', $request->request->all())]));
     }
@@ -137,12 +136,11 @@ class DatatransResponseController {
   public function processCancelResponse(Request $request, PaymentInterface $payment) {
     if (\Drupal::config('payment.payment_method_configuration.payment_datatrans')->get('pluginConfiguration')['debug']) {
       if (\Drupal::moduleHandler()->moduleExists('past')) {
-        past_event_save('datatrans', 'Cancel response - POST data', $request);
+        past_event_save('datatrans', 'response_cancel', 'Cancel response - POST data', ['POST' => $request->request->all(), 'Payment' => $payment]);
       }
       else {
-        \Drupal::logger('datatrans')->info(t('Payment cancel response: @response', ['@response' => $request]));
+        \Drupal::logger('datatrans')->info(t('Payment cancel response: @response', ['@response' => $request->request->all()]));
       }
-      drupal_set_message(t('Payment cancel response: @response', ['@response' => implode(', ', $request->request->all())]));
     }
     drupal_set_message(t('Payment cancelled.'), 'error');
     return $this->savePayment($payment, 'payment_cancelled');
