@@ -35,7 +35,7 @@ class DatatransResponseController {
     try {
       if (\Drupal::config('payment.payment_method_configuration.payment_datatrans')->get('pluginConfiguration')['debug']) {
         if (\Drupal::moduleHandler()->moduleExists('past')) {
-          past_event_save('datatrans', 'response_success', 'Success response - POST data', ['POST' => $request->request->all(), 'Payment' => $payment]);
+          past_event_save('datatrans', 'response_success', 'Success response - Payment ' . $payment->id() . ': POST data', ['POST' => $request->request->all(), 'Payment' => $payment]);
         }
         else {
           \Drupal::logger('datatrans')->debug(t('Payment success response: @response', ['@response' => $request->request->all()]));
@@ -109,7 +109,7 @@ class DatatransResponseController {
   public function processErrorResponse(Request $request, PaymentInterface $payment) {
     if (\Drupal::config('payment.payment_method_configuration.payment_datatrans')->get('pluginConfiguration')['debug']) {
       if (\Drupal::moduleHandler()->moduleExists('past')) {
-        past_event_save('datatrans', 'response_error', 'Error response - POST data', ['POST' => $request->request->all(), 'Payment' => $payment]);
+        past_event_save('datatrans', 'response_error', 'Error response - Payment ' . $payment->id() . ': POST data', ['POST' => $request->request->all(), 'Payment' => $payment]);
       }
       else {
         \Drupal::logger('datatrans')->info(t('Payment error response: @response', ['@response' => $request->request->all()]));
@@ -136,7 +136,7 @@ class DatatransResponseController {
   public function processCancelResponse(Request $request, PaymentInterface $payment) {
     if (\Drupal::config('payment.payment_method_configuration.payment_datatrans')->get('pluginConfiguration')['debug']) {
       if (\Drupal::moduleHandler()->moduleExists('past')) {
-        past_event_save('datatrans', 'response_cancel', 'Cancel response - POST data', ['POST' => $request->request->all(), 'Payment' => $payment]);
+        past_event_save('datatrans', 'response_cancel', 'Cancel response - Payment ' . $payment->id() . ': POST data', ['POST' => $request->request->all(), 'Payment' => $payment]);
       }
       else {
         \Drupal::logger('datatrans')->info(t('Payment cancel response: @response', ['@response' => $request->request->all()]));
