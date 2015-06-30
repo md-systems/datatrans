@@ -87,6 +87,7 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
         'hmac_key_2' => '',
         'use_hmac_2' => FALSE,
       ),
+      'debug' => FALSE,
     );
   }
 
@@ -333,6 +334,23 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
   }
 
   /**
+   * Enables logging the response from Datatrans.
+   *
+   * @param bool $state
+   *   Whether debugging should be dis/enabled.
+   */
+  public function setDebug($state = TRUE) {
+    $this->configuration['debug'] = $state;
+  }
+
+  /**
+   * Disables logging the response from Datatrans.
+   */
+  public function getDebug() {
+    return $this->configuration['debug'];
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
@@ -432,6 +450,12 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
       ),
     );
 
+    $form['debug'] = array(
+      '#type' => 'checkbox',
+      '#title' => 'Log response from Datatrans server',
+      '#default_value' => $this->getDebug(),
+    );
+    \Drupal::config('payment.payment_method_configuration.payment_datatrans')->get('pluginConfiguration')['debug'];
     return $form;
   }
 
@@ -449,7 +473,8 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
       ->setMerchantControlConstant($values['security']['merchant_control_constant'])
       ->setHmacKey($values['security']['hmac_key'])
       ->setUseHmacTwo($values['security']['use_hmac_2'])
-      ->setHmacKeyTwo($values['security']['hmac_key_2']);
+      ->setHmacKeyTwo($values['security']['hmac_key_2'])
+      ->setDebug($values['debug']);
   }
 
 }
