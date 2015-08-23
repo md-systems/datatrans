@@ -10,6 +10,7 @@ namespace Drupal\payment_datatrans\Plugin\Payment\Method;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Url;
 use Drupal\currency\Entity\Currency;
+use Drupal\payment\OperationResult;
 use Drupal\payment\PaymentExecutionResult;
 use Drupal\payment\Plugin\Payment\Method\PaymentMethodBase;
 use Drupal\payment\Response\Response;
@@ -77,7 +78,7 @@ class DatatransMethod extends PaymentMethodBase implements ContainerFactoryPlugi
       'absolute' => TRUE,
       'query' => $payment_data,
     )));
-    return new PaymentExecutionResult($response);
+    return new OperationResult($response);
   }
 
   /**
