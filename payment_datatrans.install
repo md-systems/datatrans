@@ -38,7 +38,7 @@ function payment_datatrans_requirements($phase) {
     }
 
     $edit_link = $datatrans_payment_method_configuration->link(t('Edit Configuration'));
-    $description = t('You should not work with anything else than security level 2 on a productive system. Without the HMAC key there is no way to check whether the data really comes from Datatrans. !edit_link', array('!edit_link' => $edit_link));
+    $description = t('You should not work with anything else than security level 2 on a productive system. Without the HMAC key there is no way to check whether the data really comes from Datatrans. @edit_link', array('@edit_link' => $edit_link));
 
     $requirements['payment_datatrans'] = array(
       'title' => t('Datatrans Security'),

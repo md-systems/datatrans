@@ -371,7 +371,7 @@ class DatatransConfiguration extends PaymentMethodConfigurationBase implements C
       '#collapsible' => FALSE,
       '#collapsed' => FALSE,
 
-      '#description' => t('You should not work with anything else than security level 2 on a productive system. Without the HMAC key there is no way to check whether the data really comes from Datatrans.') . PHP_EOL . t('You can find more details about the security levels in your Datatrans account at UPP ADMINISTRATION -> Security. Or check the technical information in the !link', array('!link' => \Drupal::l('Technical_Implementation_Guide', $url))),
+      '#description' => t('You should not work with anything else than security level 2 on a productive system. Without the HMAC key there is no way to check whether the data really comes from Datatrans.') . PHP_EOL . t('You can find more details about the security levels in your Datatrans account at UPP ADMINISTRATION -> Security. Or check the technical information in the <a href=":url">Technical_Implementation_Guide</a>', array(':url' => $url)),
     );
 
     $form['security']['security_level'] = array(
