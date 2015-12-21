@@ -12,8 +12,9 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Class DatatransResponseController
- *   Datatrans Response Controller
+ * Class DatatransResponseController.
+ *
+ * Datatrans Response Controller
  *
  * @package Drupal\payment_datatrans\Controller
  */
@@ -22,15 +23,24 @@ class DatatransResponseController {
   /**
    * Page callback for processing successful Datatrans response.
    *
-   * @param Request $request
-   *   Request
-   * @param PaymentInterface $payment
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   Request.
+   * @param \Drupal\payment\Entity\PaymentInterface $payment
    *   The Payment entity type.
    *
-   * @return \Symfony\Component\HttpFoundation\Response
+   * @return \Symfony\Component\HttpFoundation\RedirectResponse
+   *    Returns the redirect response.
    */
   public function processSuccessResponse(Request $request, PaymentInterface $payment) {
     try {
+      if (\Drupal::config('payment.payment_method_configuration.payment_datatrans')->get('pluginConfiguration')['debug']) {
+        if (\Drupal::moduleHandler()->moduleExists('past')) {
+          past_event_save('datatrans', 'response_success', 'Success response - Payment ' . $payment->id() . ': POST data', ['POST' => $request->request->all(), 'Payment' => $payment]);
+        }
+        else {
+          \Drupal::logger('datatrans')->debug(t('Payment success response: @response', ['@response' => $request->request->all()]));
+        }
+      }
       // This needs to be checked to match the payment method settings
       // ND being valid with its keys and data.
       $post_data = $request->request->all();
@@ -88,15 +98,24 @@ class DatatransResponseController {
   /**
    * Page callback for processing error Datatrans response.
    *
-   * @param PaymentInterface $payment
-   *  The Payment entity type.
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   Request.
+   * @param \Drupal\payment\Entity\PaymentInterface $payment
+   *   The Payment entity type.
    *
-   * @return \Symfony\Component\HttpFoundation\Response
-   *
-   * @throws \Exception
+   * @return \Symfony\Component\HttpFoundation\RedirectResponse
+   *    Returns the redirect response.
    */
-  public function processErrorResponse(PaymentInterface $payment) {
-
+  public function processErrorResponse(Request $request, PaymentInterface $payment) {
+    if (\Drupal::config('payment.payment_method_configuration.payment_datatrans')->get('pluginConfiguration')['debug']) {
+      if (\Drupal::moduleHandler()->moduleExists('past')) {
+        past_event_save('datatrans', 'response_error', 'Error response - Payment ' . $payment->id() . ': POST data', ['POST' => $request->request->all(), 'Payment' => $payment]);
+      }
+      else {
+        \Drupal::logger('datatrans')->info(t('Payment error response: @response', ['@response' => $request->request->all()]));
+      }
+      drupal_set_message(t('Payment error response: @response', ['@response' => implode(', ', $request->request->all())]));
+    }
     $message = 'Datatrans communication failure. Invalid data received from Datatrans.';
     \Drupal::logger('datatrans')->error('Processing failed with exception @e.', array('@e' => $message));
     drupal_set_message(t('Payment processing failed.'), 'error');
@@ -106,14 +125,23 @@ class DatatransResponseController {
   /**
    * Page callback for processing cancellation Datatrans response.
    *
-   * @param PaymentInterface $payment
-   *  The Payment entity type.
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   Request received from datatrans server.
+   * @param \Drupal\payment\Entity\PaymentInterface $payment
+   *   The Payment entity type.
    *
    * @return \Symfony\Component\HttpFoundation\Response
-   *
-   * @throws \Exception
+   *    Returns the redirect response.
    */
-  public function processCancelResponse(PaymentInterface $payment) {
+  public function processCancelResponse(Request $request, PaymentInterface $payment) {
+    if (\Drupal::config('payment.payment_method_configuration.payment_datatrans')->get('pluginConfiguration')['debug']) {
+      if (\Drupal::moduleHandler()->moduleExists('past')) {
+        past_event_save('datatrans', 'response_cancel', 'Cancel response - Payment ' . $payment->id() . ': POST data', ['POST' => $request->request->all(), 'Payment' => $payment]);
+      }
+      else {
+        \Drupal::logger('datatrans')->info(t('Payment cancel response: @response', ['@response' => $request->request->all()]));
+      }
+    }
     drupal_set_message(t('Payment cancelled.'), 'error');
     return $this->savePayment($payment, 'payment_cancelled');
   }
@@ -128,9 +156,11 @@ class DatatransResponseController {
    *
    * @return string
    *   The generated sign.
+   *
    * @throws \Exception
+   *   Exception when generating the sign failed.
    */
-  public function generateSign2($plugin_definition, $post_data) {
+  public function generateSign2(array $plugin_definition, array $post_data) {
     if ($plugin_definition['security']['hmac_key'] || $plugin_definition['security']['hmac_key_2']) {
       if ($plugin_definition['security']['use_hmac_2']) {
         $key = $plugin_definition['security']['hmac_key_2'];
@@ -148,11 +178,12 @@ class DatatransResponseController {
    * Saves success/cancelled/failed payment.
    *
    * @param \Drupal\payment\Entity\PaymentInterface $payment
-   *  Payment entity.
+   *   Payment entity.
    * @param string $status
-   *  Payment status to set
+   *   Payment status to set.
    *
-   * @return \Symfony\Component\HttpFoundation\RedirectResponse
+   * @return \Symfony\Component\HttpFoundation\Response
+   *   Saves payment and returns a response.
    */
   public function savePayment(PaymentInterface $payment, $status = 'payment_failed') {
     $payment->setPaymentStatus(\Drupal::service('plugin.manager.payment.status')
@@ -166,12 +197,12 @@ class DatatransResponseController {
    *
    * No validation.
    *
-   * @param PaymentInterface $payment
+   * @param \Drupal\payment\Entity\PaymentInterface $payment
    *   Payment Interface.
-   * @param $post_data
+   * @param array $post_data
    *   Datatrans Post Data.
    */
-  public function setPaymentConfiguration(PaymentInterface $payment, $post_data) {
+  public function setPaymentConfiguration(PaymentInterface $payment, array $post_data) {
     /** @var \Drupal\payment_datatrans\Plugin\Payment\Method\DatatransMethod $payment_method */
     $payment_method = $payment->getPaymentMethod();
 

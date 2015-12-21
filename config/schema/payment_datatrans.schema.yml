@@ -32,3 +32,6 @@ payment.plugin_configuration.payment_method_configuration.payment_datatrans:
         use_hmac_2:
           type: boolean
           label: Use HMAC 2
+    debug:
+      type: boolean
+      label: Log Datatrans responses
